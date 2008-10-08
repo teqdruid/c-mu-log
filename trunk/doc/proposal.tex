@@ -1,0 +1,190 @@
+%  Written for Columbia COMS4112, fall 2008
+\documentclass[onecolumn,titlepage]{article}
+\usepackage[pdftex]{graphicx}
+\usepackage{fullpage}
+\usepackage{moreverb}
+\usepackage{multicol}
+
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+
+\def\sourcetabsize{4}
+\newenvironment{sourcestyle}{\begin{scriptsize}}{\end{scriptsize}}
+\def\sourceinput#1{\par\begin{sourcestyle}\verbatimtabinput[\sourcetabsize]{#1}\end{sourcestyle}\par}
+
+\usepackage{float}
+ 
+\floatstyle{ruled}
+\newfloat{program}{thp}{lop}
+\floatname{program}{Program}
+
+
+%\acmVolume{V}
+%\acmNumber{N}
+%\acmYear{YY}
+%\acmMonth{M}
+
+\begin{document}
+\title{C$\mu$LOG\\\small{An Entity Interaction Simulation Language}}
+\author{John Demme (jdd2127)\\Nishant Shah (nrs2127)\\Devesh Dedhia (ddd2121)\\Cheng Cheng (cc2999)
+\\ \\Columbia University}
+
+\maketitle
+
+\section{Overview}
+C$\mu$LOG is a logic programming language and it resembles Prolog in many aspects.
+The fundamental method of finding solutions is very similar to Prolog but C$\mu$LOG's
+way of representing it is much more familiar to the end user. Additionally, C$\mu$LOG
+has provisions for entity communication. As this language is going to be used for simulating 
+real life motions, we
+strongly emphasize that the program learn and forget data/rules/information at
+run-time. For this, similar to ``assert'' and ``retract'' of Prolog we have
+introduced two functions called ``learn'' and ``forget.''
+  
+In C$\mu$LOG there exist no specific data structures like you would see in Java or Python,
+however rules and facts can be added to the program dynamically, which allows programs to
+remember data in a much more natural way since the data simply becomes part of the running code.
+
+The semantics of C$\mu$LOG are similar to Prolog, but the syntax is heavily modified to look 
+more like C.  One of the most unique features about it is entity linking
+and protection, which can be used to simulate entity communication.
+To run a useful application on C$\mu$LOG you
+will need to have an environment entity (defining the environment and game) and at least one agent,
+ to provide a subject to be simulated. We link entities to the environment and the
+access to data in all entities is dynamic-permission-based. Data access can help in an environment
+when all agents have a common goal and data encapsulation can also be useful when the goals
+are different.
+
+Each agent program communicates with other programs to find out more information about
+other agents or its own status in the environment. The simulator has all the information 
+about each agent. This feature provides for interesting inter-program communication and at the same
+time protects when necessary data. Examples of this are discussed in a subsequent section.
+
+Another feature of C$\mu$LOG is that it has a powerful library of its own and also can
+support third party libraries. The library supports functions like range, and move
+which are very useful for simulating any environment. These functions are available in a
+library and can also be complemented by the user to suit his needs. The default library 
+will always be included in the program without any specific code but a third party
+one would have to be explicitly included in the program in the following way:
+
+@attach$<abc.xx>$
+
+
+\section{Introduction to Logic Programming}
+Logic programming is a kind of computer programming using
+mathematical logic. Specifically, it is based on the the idea that
+of applying a theorem-prover to declarative
+sentences and deriving implications. Compared with procedural 
+languages, logic programming solves the problem by
+setting rules with which solutions must fit. We can represent
+logic programming by the formula:
+\begin{eqnarray*}
+Facts + Rules = Solutions
+\end{eqnarray*}
+
+Logic programming languages provide several important advantages:
+\begin{itemize}
+\item Logic programming languages are inherently ``high level'' languages, allowing
+  programmers to specify problems in a declarative manner, leaving some of all of the
+  details of solving the problem to the interpreter.
+\item The structures--both programming structures and data structures--in both
+  prolog and C$\mu$LOG can be very simple- such as facts.  The
+  relationship between code and data is also of note.  C$\mu$LOG uses the Von Neumann
+  style (vs. Harvard architecture) wherein data is code.  It is therefore possible 
+  (and inherently necessary) for programs to be introspective, and self-modifying.
+  In other words, it is easier for programs to learn and adapt.
+\end{itemize}
+		
+There are several different logic programming languages.
+Among these languages, Prolog is the most popular one, which was developed
+in 1972 by Alain Colmerauer. In prolog program, there are facts and
+rules. The program is then driven by a question. It is widely used in 
+artificial intelligence and computational linguistics.
+
+\section{Applications}
+The language C$\mu$LOG we have designed will be used for communication 
+between agents and an environment, as well as to determine behavior of said
+entities. Every agent program communicates 
+with the environment program through a simulator. The simulator runs a
+C$\mu$LOG logic solver and interpreter which functions on a set of rules 
+defined and modified by the environment and agents then provides solutions
+representing the actions to be taken by the agents.
+
+The environment is grid based and defined by a C$\mu$LOG program.  It
+potentially includes obstacles and a goals which the agent must reach, however
+the game is defined almost entirely by the environment program.
+Every object (i.e. agents, walls, switches, goals)
+in the environment is defined by grid positions.  The environment specifies
+the representations of the entities to the simulator.  The 
+simulator re-evaluates the object rule during each turn when it renders
+the grid, so the contents of the grid can be dynamically defined based on the state
+of the simulation or the contents of the program (which can be changed by the program.)
+ For example based on the grid position
+of the agent the environment might remove or insert a wall. The agent program
+decides the next move based on previous moves and obstacle data.
+
+The simulation of the agent program is also turn based. Each time the agent 
+makes a move it sends its new coordinates to the simulator. The new coordinates
+become part of the simulation's rules which are exposed to the environment when
+it is solved to render the scene.
+
+The simulator discussed could be modified to be used for flight simulation
+of several agents in a grid based airspace. Alternatively, it could be used in a real
+environment like the movement of {\it pick and place} robots in a warehouse. 
+The language could be used to define the warehouse environment and agent 
+programs for robots.
+
+\section{Example Code}
+Several examples are now given.  They are not complete, and only intended
+to give a gist of the language's syntax and semantics.
+
+The environ1.ul program defines a 15x15 grid as well as several wall locutions.
+The simulator doesn't know anything about a ``wall'' or a ``goal'', but gets
+symbols for each grid point by solving the ``object'' rule.  The environment
+interacts with the simulator primarily via the object rule.  The ``repr'' rule
+is also used to tell the simulator what file should be associated with each
+symbol.  This file could be an image (to display on the grid) or an agent program
+to run, starting in that grid.
+
+The agent1.ul program is a pretty simple program which attempts to reach the ``goalObject''
+without running into anything else. To do this, it uses very simple graph-search 
+algorithms to find a valid path to the goalObject, or--alternatively--a grid square
+which it has not been to yet.  This sort of searching algorithm is very simple in
+C$\mu$LOG due to it's logical nature.  Indeed, it depends on the simple search 
+which is used internally to solve programs.  The agent also attempts to communicate it's 
+knowledge of the environment to any other agents it encounters.
+
+\section{Purpose}
+The language proposed here is ideal for entity interaction and simulation for a 
+number of important reasons:
+\begin{itemize}
+\item Generic- games are defined completely by the environment application.
+
+\item Composable- individual behaviors can be written simply and easily, then combined
+  to obtain high-level actions and reasoning.
+
+\item Declarative- programmers can specify what they want entities to do rather than how
+
+\item Controlled Communication- data in the system is frequently made up of nearly-atomic bits of data
+  many of which can be used both on their own and composed as complex data.  This means that subsets
+  and smaller pieces of data can be communicated between entities without loosing meaning.
+
+\item High-level libraries- due to the flexibility of the language, high-level
+  algorithms--such as path-finding--can be easily implemented in libraries, allowing
+  further, domain-specific intelligence to be written in the programs.
+\end{itemize}
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/environ1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG environment programming}
+\end{program}
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/agent1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG agent}
+\end{program}
+
+\end{document}
