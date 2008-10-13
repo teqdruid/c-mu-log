@@ -1,0 +1,108 @@
+// agent1.ul: Sample agent program
+
+
+//Sample routine to recall last move
+lastCoord($Xl, $Yl) {
+	moveNum($N);
+	myCoord($N-1, $Xl, $Yl));
+}
+
+//Sample routine to remember moves
+storeCoord() {
+	moveNum($N);
+	learn( myCoord($N, $X, $Y) );
+	forget(moveNum($N));
+	learn(modeNum($N + 1));
+}
+
+//Move routines resolve coordinates for a
+// direction or vise-versa
+move($X1, $Y1, $X2, $Y2, Up) {
+	$X1 == $X2;
+	$Y1 + 1 == $Y2;
+}
+
+move($X1, $Y1, $X2, $Y2, Down) {
+	$X1 == $X2;
+	$Y1 - 1 == $Y2;
+}
+
+move($X1, $Y1, $X2, $Y2, Left) {
+	$X1 - 1== $X2;
+	$Y1 == $Y2;
+}
+
+move($X1, $Y1, $X2, $Y2, Right) {
+	$X1 + 1 == $X2;
+	$Y1 == $Y2;
+}
+
+//Find and remember all my local peers
+action($dir)
+{
+	{
+		$env.peers($p) |
+		myPeers($p);
+	}
+	$p != $this;
+	// Tell all my peers about all the
+	//  walls I know about
+	memObj($Xo, $Yo, wallObject);
+	$p.learn( object($Xo, $Yo, wallObject) );
+
+	// Remember all my friends
+	learn( myPeers($p) );
+	false;
+}
+
+//Learn everything I can see, and store my coordinate
+action($dir) {
+	$env.view($ox, $oy, $this, $obj);
+	learn( memObj($ox, $oy, $obj) );
+	storeCoord();
+	false;
+}
+
+//Solution solver base case
+solution($Xp, $Yp, []) {
+	memObj($Xp, $Yp, goalObject);
+}
+
+//Find a path to goal
+solution($Xp, $Yp, [$Dir | $Rest]) {
+	//Does $Rest get us to goal?
+	solution($Xn, $Yn, $Rest);
+	//Would we run into anything at the new coordinates?
+	!memObj($Xn, $Yn, _);
+	//If no, then resolve the direction
+	move($Xp, $Yp, $Xn, $Yn, $Dir);
+}
+
+//Find a coordinate where we haven't been
+explore($Xp, $Yp, []) {
+	//Valid explore goal if we haven't been here before
+	!myCoord($Xp, $Yp, _);
+}
+
+//Find a path to an unexplored tile
+explore($Xp, $Yp, [$Dir | $Rest]) {
+	//Does $Rest get us closer to a place we haven't been?
+	explre($Xn, $Yn, $Rest);
+	//Would we run into anything at the new coordinates?
+	!memObj($Xn, $Yn, _);
+	//If no, then resolve the direction
+	move($Xp, $Yp, $Xn, $Yn, $Dir);
+}
+
+//If we know a solution to goal, use it
+action($dir) {
+	solution($X, $Y, [$dir | _]);
+}
+
+//If not, use a path to an unexplored square
+action($dir) {
+	explore($X, $Y, [$dir | _]);
+	//What would the new coordinates be?
+	move($X, $Y, $Xn, $Yn, $dir);
+
+}
