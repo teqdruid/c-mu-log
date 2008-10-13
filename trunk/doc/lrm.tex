@@ -1,0 +1,109 @@
+%  Written for Columbia COMS4112, fall 2008
+\documentclass[onecolumn,titlepage]{article}
+\usepackage[pdftex]{graphicx}
+\usepackage{fullpage}
+\usepackage{moreverb}
+\usepackage{multicol}
+
+\usepackage[left=2cm,top=2cm,bottom=2cm,right=2cm]{geometry}
+
+\def\sourcetabsize{4}
+\newenvironment{sourcestyle}{\begin{scriptsize}}{\end{scriptsize}}
+\def\sourceinput#1{\par\begin{sourcestyle}\verbatimtabinput[\sourcetabsize]{#1}\end{sourcestyle}\par}
+
+\usepackage{float}
+ 
+\floatstyle{ruled}
+\newfloat{program}{thp}{lop}
+\floatname{program}{Program}
+
+
+\begin{document}
+\title{C$\mu$LOG Reference Manual\\\small{An Entity Interaction Simulation Language}}
+\author{John Demme (jdd2127)\\Nishant Shah (nrs2127)\\Devesh Dedhia (ddd2121)\\Cheng Cheng (cc2999)
+\\ \\Columbia University}
+
+\maketitle
+
+\section{Overview}
+
+\section{Purpose}
+The language proposed here is ideal for entity interaction and simulation for a 
+number of important reasons:
+\begin{itemize}
+\item Generic- games are defined completely by the environment application.
+
+\item Composable- individual behaviors can be written simply and easily, then combined
+  to obtain high-level actions and reasoning.
+
+\item Declarative- programmers can specify what they want entities to do rather than how
+
+\item Controlled Communication- data in the system is frequently made up of nearly-atomic bits of data
+  many of which can be used both on their own and composed as complex data.  This means that subsets
+  and smaller pieces of data can be communicated between entities without loosing meaning.
+
+\item High-level libraries- due to the flexibility of the language, high-level
+  algorithms--such as path-finding--can be easily implemented in libraries, allowing
+  further, domain-specific intelligence to be written in the programs.
+\end{itemize}
+
+\section{Rules}
+
+\section{Variables}
+
+\section{Blocks}
+
+\section{Statements}
+
+\section{Types}
+
+\section{Rule Evaluation}
+
+\section{Arrays}
+
+\section{Program Modification}
+
+\section{Interaction- The Dot Operator}
+
+\section{Access Rules}
+
+\section{Directives}
+
+\section{Grammar}
+
+\section{Example Code}
+Several examples are now given.  They are not complete, and only intended
+to give a gist of the language's syntax and semantics.
+
+The environ1.ul program defines a 15x15 grid as well as several wall locutions.
+The simulator doesn't know anything about a ``wall'' or a ``goal'', but gets
+symbols for each grid point by solving the ``object'' rule.  The environment
+interacts with the simulator primarily via the object rule.  The ``repr'' rule
+is also used to tell the simulator what file should be associated with each
+symbol.  This file could be an image (to display on the grid) or an agent program
+to run, starting in that grid.
+
+The agent1.ul program is a pretty simple program which attempts to reach the ``goalObject''
+without running into anything else. To do this, it uses very simple graph-search 
+algorithms to find a valid path to the goalObject, or--alternatively--a grid square
+which it has not been to yet.  This sort of searching algorithm is very simple in
+C$\mu$LOG due to it's logical nature.  Indeed, it depends on the simple search 
+which is used internally to solve programs.  The agent also attempts to communicate it's 
+knowledge of the environment to any other agents it encounters.
+
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/environ1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG environment programming}
+\end{program}
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/agent1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG agent}
+\end{program}
+
+\end{document}
