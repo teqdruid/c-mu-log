@@ -47,29 +47,90 @@ number of important reasons:
   further, domain-specific intelligence to be written in the programs.
 \end{itemize}
 
+\section{Facts}
+-What are facts
+   Define a true relationship
+   Another way to look at it: a terminal in a solution search.
+-How do they look
+   foo(4, symA);
+     relationship: foo - 4 - symA  is true
+   foo(4, symA, _);
+     relationsihp: foo - 4 - symA - (anything)  is true
+-Example: wall(4,5);
+
 \section{Rules}
+-What are rules
+   Define something which is conditionally true
+   Another way to look at it: a node in the search tree
+-How do they look?
+   foo(4) { bar(5); }
+    foo(4) is true if bar(5) is true, but not iff
+   foo(4) { bar(6); }
+   Together, are equivalent to 
+   foo(4) {OR: bar(5); bar(6); }
 
 \section{Variables}
+-Represent a value to be solved for
+-Special variable: ? (the anonymous variable)
+-syntax: \$[a-zA-Z][a-zA-Z0-9_]*
+-Dollar sign, followed by the variable name.  The name must start with a letter, and is composed of letters, numbers, and underscore (_)
+-Examples: \$X, \$foo, \$foo9...
 
 \section{Blocks}
+-Contain statements terminated by ;
+-Can begin with OR: or AND: to identify reduction method
+-Can contain sub-blocks, treated as statements
+-Examples:
+  { 
+    foo;
+    bar;
+  }
+ True if foo and bar are true.
+  {OR:
+    foo;
+    bar;
+  }
+ True if foo or bar are true.
 
 \section{Statements}
+-Comparisons:
+   1 < \$X;
+   4 < \$Y <= 9;
+-Evals:
+ foo(\$X, \$Y, 7);
+-Blocks
 
 \section{Types}
+-Integers
+-Strings (atomic)
+-Arrays
+-Symbols
+-Entity
 
 \section{Rule Evaluation}
 
 \section{Arrays}
+- Delimited by []
+- Items separated by commas
+- Only occur as parameters for rules, facts, and evals
+- Functional-style linked lists
+- Matching similar to functional list matching
 
 \section{Program Modification}
+-@learn
+-@forget
 
 \section{Interaction- The Dot Operator}
-
-\section{Access Rules}
+-If a variable represents another entity (program), one can attempt to
+  access another entity's rules and facts
+  
 
 \section{Directives}
+-@attach
+-@print
+-Potentially other things using @something syntax
 
-\section{Grammar}
+\section{Tokens}
 
 \section{Example Code}
 Several examples are now given.  They are not complete, and only intended

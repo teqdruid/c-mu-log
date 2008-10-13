@@ -37,22 +37,31 @@ move($X1, $Y1, $X2, $Y2, Right) {
 	$Y1 == $Y2;
 }
 
+{ OR  : 
+    or($x, $y);
+    { 
+	A;
+	B;
+    }
+    C;
+}
+
 //Find and remember all my local peers
 action($dir)
 {
-	{
-		$env.peers($p) |
-		myPeers($p);
-	}
-	$p != $this;
-	// Tell all my peers about all the
-	//  walls I know about
-	memObj($Xo, $Yo, wallObject);
-	$p.learn( object($Xo, $Yo, wallObject) );
-
-	// Remember all my friends
-	learn( myPeers($p) );
-	false;
+    {XOR
+	$env.peers($p);
+	myPeers($p);
+    }
+    $p != $this;
+    // Tell all my peers about all the
+    //  walls I know about
+    memObj($Xo, $Yo, wallObject);
+    $p.learn( object($Xo, $Yo, wallObject) );
+    
+    // Remember all my friends
+    learn( myPeers($p) );
+    false;
 }
 
 //Learn everything I can see, and store my coordinate
@@ -69,7 +78,7 @@ solution($Xp, $Yp, []) {
 }
 
 //Find a path to goal
-solution($Xp, $Yp, [$Dir | $Rest]) {
+solution($Xp, $Yp, [$Dir, $Rest]) {
 	//Does $Rest get us to goal?
 	solution($Xn, $Yn, $Rest);
 	//Would we run into anything at the new coordinates?
