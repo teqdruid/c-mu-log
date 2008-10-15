@@ -26,10 +26,10 @@
 \maketitle
 
 \section{Overview}
+C$\mu$LOG is a logic language designed for entity interaction simulation.  It uses a syntax similar to C, making it easier on the typical programmer's eyes, and already integrates with some code tools, such as code indenters.  One uses the language to provide a set of facts and rules, and the ``program'' is run by asking a question, which the interpreter attempts to answer using inference based on the fact and rule set.  C$\mu$LOG is designed for simulation, so typically a simulator will ask a given agent program what it's next action will be.  The agent program then uses C$\mu$LOG's entity interaction features to gather information about it's environment and decide what to do.
 
-\section{Purpose}
-The language proposed here is ideal for entity interaction and simulation for a 
-number of important reasons:
+\section{Goals}
+The language presented here attempts to fulfill the following requirements:
 \begin{itemize}
 \item Generic- games are defined completely by the environment application.
 
@@ -48,89 +48,206 @@ number of important reasons:
 \end{itemize}
 
 \section{Facts}
--What are facts
-   Define a true relationship
-   Another way to look at it: a terminal in a solution search.
--How do they look
-   foo(4, symA);
-     relationship: foo - 4 - symA  is true
-   foo(4, symA, _);
-     relationsihp: foo - 4 - symA - (anything)  is true
--Example: wall(4,5);
+Facts define factual relationships.  They have a very similar syntax to rules, except they
+have no code block to make them conditionally true.  Any query which matches a fact is simply
+true. Another way to think of facts is as terminal nodes in the solution search.
+
+Each fact is composed of a name, and a comma separated list of parameters, each of which may
+be a constant, or a variable.  Using any variable except the anonymous variable doesn't make
+much sense in a fact, but is allowable.
+\begin{verbatim}
+Example:
+  foo(4, symA);  //Foo of 4 and symA is always true
+  foo(4, symA, ?); //Foo of 4, symA, and anything (wildcard) is always true
+  wall(4, 5); //In an environment might mean: there is a wall present at (4,5)
+
+Grammar:
+\end{verbatim}
 
 \section{Rules}
--What are rules
-   Define something which is conditionally true
-   Another way to look at it: a node in the search tree
--How do they look?
-   foo(4) { bar(5); }
-    foo(4) is true if bar(5) is true, but not iff
-   foo(4) { bar(6); }
-   Together, are equivalent to 
-   foo(4) {OR: bar(5); bar(6); }
+Rules define relationships which are conditionally true.  They are similar to facts, but
+instead of ending with a semicolon, they contain have a block, which defines the conditions
+upon which the rule should be evaluated as true.  Another way to think of a rules is as
+a node in the solution search which may branch, or be a leaf, depending on the contents
+of the condition block. Each rule is composed of a name, a comma separated list of parameters,
+and a block.
+
+\begin{verbatim}
+Example:
+  foo(4) { bar(5); }  //Foo of 4 is true if bar(5) is true
+  foo(4) { bar(6); }  //Foo of 4 is true if bar(6) is true
+The two above rules are together equivalent to:
+  foo(4) {OR: bar(5); bar(6); }
+
+Grammar:
+\end{verbatim}
 
 \section{Variables}
--Represent a value to be solved for
--Special variable: ? (the anonymous variable)
--syntax: \$[a-zA-Z][a-zA-Z0-9_]*
--Dollar sign, followed by the variable name.  The name must start with a letter, and is composed of letters, numbers, and underscore (_)
--Examples: \$X, \$foo, \$foo9...
+Variables represent a value to be solved for.  During rule matching, they will match any
+value or type, but can be constrained in an associated block.
+Variables are represented by a dollar sign (\$) then the variable name. The name must
+start with a letter, and is composed of letters, numbers, and underscores.  There is a special
+variable called the anonymous variable which is represented simply by a question mark (?).  It
+cannot be referenced in the block, and simply matches anything.
+\begin{verbatim}
+Example:
+  foo($X, $y, $foo_bar, $bar9, ?) { }
+
+Grammar:
+  variable -> $[a-zA-Z][a-zA-Z0-9_]* | ?
+\end{verbatim}
 
 \section{Blocks}
--Contain statements terminated by ;
--Can begin with OR: or AND: to identify reduction method
--Can contain sub-blocks, treated as statements
--Examples:
-  { 
-    foo;
-    bar;
-  }
- True if foo and bar are true.
-  {OR:
-    foo;
-    bar;
-  }
- True if foo or bar are true.
+Blocks contain a list of statements (conditions) to determine truth, and specify a reduction 
+method for those statements.  Each block will reduce all of its statements using the same
+reduction method (usually AND or OR), but may contain sub-blocks.  If the reduction method
+is omitted, AND is assumed.  The syntax allows for other reduction methods to be allowed
+(such as xor, or a user-specified method), however the language does not yet support this.
+\begin{verbatim}
+Examples:
+ { 
+    foo();
+    bar();
+ }
+ //True if foo and bar are both true.
+
+ {AND:
+    foo();
+    bar();
+ }
+ //True if foo and bar are both true.
+
+ {OR:
+    foo();
+    bar();
+ }
+ //True if foo or bar are true.
+
+Grammar:
+  block -> { ((AND|OR):)? stmts }
+  stmts -> stmt | stmt stmts
+\end{verbatim}
 
 \section{Statements}
--Comparisons:
-   1 < \$X;
-   4 < \$Y <= 9;
--Evals:
- foo(\$X, \$Y, 7);
--Blocks
+Statements are boolean qualifiers which are used inside of blocks.  They can be any one
+of three types: comparisons, evaluations, or blocks. Comparisons are used to constrain variables.
+N-ary comparisons are supported.  Only values of the same type can be compared, and certain
+comparisons only work on certain types, so comparisons can be used to constrain variables by 
+type.  Evals are used to query the program, and have a similar syntax as facts.  They can be thought
+of as a branch in the solution search.  Blocks are considered a statement to support sub-blocks.
+They are evaluated and the reduced result is used.  Comparisons and evals are both terminated
+by semicolons.
+
+\begin{verbatim}
+Examples:
+  1 < $X <= $Y < 10;  // A comparison
+  range($X, $Y, 7);   // An eval
+  {OR: $X > 10; $X < 0; }  //A sub-block with two binary comparisons
+
+Grammar:
+\end{verbatim}
+
+\section{Expressions}
+Expressions are used to modify values being passed into comparisons or evals.
+
+\begin{verbatim}
+Examples:
+  $r - 10 < $X < $r + 10;  // A comparison
+  range($X, $Y, $r / 3);   // An eval
+
+Grammar:
+\end{verbatim}
 
 \section{Types}
--Integers
--Strings (atomic)
--Arrays
--Symbols
--Entity
-
-\section{Rule Evaluation}
+The following types are supported: integers, strings, arrays, symbols, and entities.
+Strings in C$\mu$LOG are currently atomic, so no string processing such as splitting,
+joining, or searching is supported.  They are primarily used for interaction with the
+rest of the system (printing, specifying files, ect.).  Arrays are discussed in detail
+in the next section.  Symbols are simply identifiers.  They share the same namespace as rule
+and fact names, and can only be compared with equals and not equals.  Entities are used
+to represent other programs (typically agents) and are used for interaction.  In addition
+to equals and not equals comparison operators, they support the dot operator for interaction
+(discussed later.)
 
 \section{Arrays}
-- Delimited by []
-- Items separated by commas
-- Only occur as parameters for rules, facts, and evals
-- Functional-style linked lists
-- Matching similar to functional list matching
+Arrays in C$\mu$LOG behave similarly to functional lists, and are matched similiarly as well.
+They are delimited by [ and ], and elements are comma separated.  The null list (also the tail
+of the list) is denoted by [].  Any number of elements of the array are matched inside of
+fact and rule declarations.  The last element listed in [] must be an array.
+\begin{verbatim}
+Examples:
 
-\section{Program Modification}
--@learn
--@forget
+  //A set of rules which ensures that all elements are less than $v
+  lessThan($v, [$head, $tail]) { $head < $v; foo($v, $tail); }
+  lessThan(?, []);
 
-\section{Interaction- The Dot Operator}
--If a variable represents another entity (program), one can attempt to
-  access another entity's rules and facts
-  
+  //Prepends $v to array $a
+  prepend($v, $a, [$v, $a]);
+
+  //Constructs a list
+  list($a, $b, [$a, $b, []]);
+
+Grammar:
+\end{verbatim}
+
+%- Delimited by []
+%- Items separated by commas
+%- Only occur as parameters for rules, facts, and evals
+%- Functional-style linked lists
+%- Matching similar to functional list matching
 
 \section{Directives}
--@attach
--@print
--Potentially other things using @something syntax
+C$\mu$LOG supports a special syntax for interpreter directives.  This allows programs to
+interact with the interpreter while avoiding symbol collisions. The syntax is similar
+to that of a fact's, but an at sign (@) is prepended. Four directives are currently planned:
+attach, print, learn, and forget.  Attach is used to include code from another C$\mu$LOG file.
+Print is used to output strings, and results of searches during runtime.  Learn and forget
+are discussed in the next section.
+\begin{verbatim}
+Examples:
+  @attach("geometry.ul");
+  @print("Hello, world!");
 
-\section{Tokens}
+Grammar:
+\end{verbatim}
+
+\section{Program Modification}
+The two directives learn and forget are used to modify a program at runtime.  This
+is the only way in which C$\mu$LOG supports non-volatile storage.  Learn is used to
+add a fact to a program, and forget is used to remove a fact.  The synatax for these
+two directives is special, consisting of the usual directive syntax, except contained
+inside the parenthesis is a fact definition.  Any non-anonymous variables in this fact
+definition are filled in with solutions found for those variables, and the learn or
+forget is ``executed'' once for each solution.  They are similar to Prolog's assert and retract.
+\begin{verbatim}
+Examples:
+  @learn( wall(4,5); );  //Remember that there is a wall at (4,5)
+  @forget( agent(8, 10); ); //Forget about the agent at (8, 10)
+
+Grammar:
+\end{verbatim}
+
+
+\section{Interaction- The Dot Operator}
+If a variable or symbol represents another program (entity), then it supports
+the dot operator.  After appending a dot (.) to the reference, one can put
+an eval, a learn, or a forget, and that action will take place in the other
+entity's namespace.  This can be used to ask for information from another program
+(such as the environment program or another agent) or to modify the other
+program--perhaps to teach another agent, to trick a competitor, or to change
+the operating environment.  Future versions of C$\mu$LOG could likely support
+some sort of access rules in the destination program, allowing it to control who is
+allowed to access what data, and who is allowed to change its program, and how.
+These access rules could potentially modify any queries or changes, perhaps
+revealing an entirely fake namespace to the other agent.  Such access rules are
+beyond the scope of C$\mu$LOG initially, however.
+\begin{verbatim}
+Example:
+  $agent.@learn( wall(4,5); );  //Tell agent2 that there is a wall at (4,5)
+  env.view($X, $Y, $obj); //Query the environment, find out what is at ($X, $Y)
+
+Grammar:
+\end{verbatim}
 
 \section{Example Code}
 Several examples are now given.  They are not complete, and only intended
