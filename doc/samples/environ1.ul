@@ -7,7 +7,7 @@
 // This is a sample 15x15 environment
 size(15,15);
 
-@attach <geometry.ul>;
+@attach("geometry.ul");
 
 // A wall segment at (5,5)
 wall(5,5);
@@ -19,28 +19,26 @@ wall($X,$Y) {
 }
 
 // A wall that only appears when an agent is at (1,2) or (1,4)
-wall(1,3) {
-	{
-		object(1, 2, agent1) |
-		object(1, 4, agent1);
-	}
+wall(1,3) {OR:
+	object(1, 2, agent1);
+	object(1, 4, agent1);
 }
 
 // A wall that only appears when an agent is at (2,2) or (2,4),
 //  but stays there after the agent leaves
 wall(2,3) {
-	{
-		object(2, 2, agent1) |
+	{OR:
+		object(2, 2, agent1);
 		object(2, 4, agent1);
 	}
-	learn( wall(2,3) );
+	@learn( wall(2,3); );
 }
 
 /* An invisible switch appears at (3,3) and dissolves the wall
    at (2,3) when the agent steps on it */
 object(3, 3, switchObject) {
 	object(3, 3, agent1);
-	forget( wall(2,3) );
+	@forget( wall(2,3); );
 }
 
 // There is a "wallObject" at x,y,
@@ -78,7 +76,7 @@ repr(agent1, "agent1.sl");
 //Place at (1,1) then forget about the agent,
 // so the simulator will take over agent management
 object(1, 1, agent1) {
-	forget(object(1, 1, agent1));
+	@forget( object(1, 1, agent1); );
 }
 
 viewRange($x, $y, $viewer, $obj, $rangeMax) {
@@ -89,23 +87,17 @@ viewRange($x, $y, $viewer, $obj, $rangeMax) {
 }
 
 viewAccessRule(agent1);
-access (viewAccessRule) {
-	//How far can agents see?
-	// This is defined in geometry.ul
-	view($x, $y, $viewer, $obj) {
-		viewRange($x, $y, $viewer, $obj, 1);
-	}
+//How far can agents see?
+// This is defined in geometry.ul
+view($x, $y, $viewer, $obj) {
+	viewRange($x, $y, $viewer, $obj, 1);
 }
 
 repr(agent2, "agent2.ul");
 
-comsAccess(agent1) {
-	comsRange(agent1, agent2, 5);
-}
-access(comsAccess) {
-	peers(agent1);
-	peers(agent2);
-}
+peers(agent1);
+peers(agent2);
+
 
 
 /*

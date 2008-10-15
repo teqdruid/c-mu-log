@@ -10,9 +10,9 @@ lastCoord($Xl, $Yl) {
 //Sample routine to remember moves
 storeCoord() {
 	moveNum($N);
-	learn( myCoord($N, $X, $Y) );
-	forget(moveNum($N));
-	learn(modeNum($N + 1));
+	@learn( myCoord($N, $X, $Y); );
+	@forget( moveNum($N); );
+	@learn( modeNum($N + 1); );
 }
 
 //Move routines resolve coordinates for a
@@ -37,37 +37,28 @@ move($X1, $Y1, $X2, $Y2, Right) {
 	$Y1 == $Y2;
 }
 
-{ OR  : 
-    or($x, $y);
-    { 
-	A;
-	B;
-    }
-    C;
-}
-
 //Find and remember all my local peers
 action($dir)
 {
-    {XOR
-	$env.peers($p);
-	myPeers($p);
-    }
-    $p != $this;
-    // Tell all my peers about all the
-    //  walls I know about
-    memObj($Xo, $Yo, wallObject);
-    $p.learn( object($Xo, $Yo, wallObject) );
+	{OR:
+		$env.peers($p);
+		myPeers($p);
+	}
+	$p != $this;
+	// Tell all my peers about all the
+	//  walls I know about
+	memObj($Xo, $Yo, wallObject);
+	$p.@learn( object($Xo, $Yo, wallObject); );
     
-    // Remember all my friends
-    learn( myPeers($p) );
-    false;
+	// Remember all my friends
+	@learn( myPeers($p); );
+	false;
 }
 
 //Learn everything I can see, and store my coordinate
 action($dir) {
 	$env.view($ox, $oy, $this, $obj);
-	learn( memObj($ox, $oy, $obj) );
+	@learn( memObj($ox, $oy, $obj); );
 	storeCoord();
 	false;
 }
@@ -82,7 +73,7 @@ solution($Xp, $Yp, [$Dir, $Rest]) {
 	//Does $Rest get us to goal?
 	solution($Xn, $Yn, $Rest);
 	//Would we run into anything at the new coordinates?
-	!memObj($Xn, $Yn, _);
+	!memObj($Xn, $Yn, ?);
 	//If no, then resolve the direction
 	move($Xp, $Yp, $Xn, $Yn, $Dir);
 }
@@ -90,27 +81,27 @@ solution($Xp, $Yp, [$Dir, $Rest]) {
 //Find a coordinate where we haven't been
 explore($Xp, $Yp, []) {
 	//Valid explore goal if we haven't been here before
-	!myCoord($Xp, $Yp, _);
+	!myCoord($Xp, $Yp, ?);
 }
 
 //Find a path to an unexplored tile
-explore($Xp, $Yp, [$Dir | $Rest]) {
+explore($Xp, $Yp, [$Dir, $Rest]) {
 	//Does $Rest get us closer to a place we haven't been?
 	explre($Xn, $Yn, $Rest);
 	//Would we run into anything at the new coordinates?
-	!memObj($Xn, $Yn, _);
+	!memObj($Xn, $Yn, ?);
 	//If no, then resolve the direction
 	move($Xp, $Yp, $Xn, $Yn, $Dir);
 }
 
 //If we know a solution to goal, use it
 action($dir) {
-	solution($X, $Y, [$dir | _]);
+	solution($X, $Y, [$dir, ?]);
 }
 
 //If not, use a path to an unexplored square
 action($dir) {
-	explore($X, $Y, [$dir | _]);
+	explore($X, $Y, [$dir, ?]);
 	//What would the new coordinates be?
 	move($X, $Y, $Xn, $Yn, $dir);
 
