@@ -1,16 +1,18 @@
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE EOF LINECOMMENT EOL
-%token OPENBLOCKCOMMENT CLOSEBLOCKCOMMENT OPENPAREN CLOSEPAREN
-%token OPENBLOCK CLOSEBLOCK AT DOT
-%token SEMICOLON PIPE COMMA
-%token <string> SYMBOL VARIABLE STRING TEXT
-%token <int> NUMBER
+%token PLUS MINUS TIMES DIVIDE ASSIGN EOF COMMENT 
+%token LBRACE RBRACE LPAREN RPAREN
+%token ARROPEN ARRCLOSE AT DOT
+%token SEMICOLON OR AND COMMA
+%token <string> ID VARIABLE STRING TEXT
+%token <int> DIGIT
 
-(* Comparison tokens *)
-%token EQUALS GT LT GTE LTE NEQUALS
+/* Comparison tokens */
+%token EQ GT LT GEQ LEQ NEQ
 
-%nonassoc EQUALS
+%nonassoc EQ
+%left ASSIGN NEQ
+%left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
 
@@ -28,13 +30,14 @@ top:
   comment
 | culogRule
 
-comment:
-  LINECOMMENT TEXT EOL
-| OPENBLOCKCOMMENT TEXT CLOSEBLOCKCOMMENT
+/*comment:
+  COMMENT TEXT SEMICOLON
+| OPENBLOCKCOMMENT TEXT CLOSEBLOCKCOMMENT*/
 
 culogRule:
-  name OPENPAREN params CLOSEPAREN SEMICOLON
-| name OPENPAREN params CLOSEPAREN block
+  ID LPAREN params RPAREN SEMICOLON
+| ID LPAREN params RPAREN block
+
 
 params:
   param
@@ -42,30 +45,32 @@ params:
 
 param:
   VARIABLE
-| SYMBOL
-| NUMBER
+| ID
+| DIGIT
 | STRING
 
 block:
-  OPENBLOCK stmtList CLOSEBLOCK
+  LBRACE stmtList RBRACE
+ |OR stmtList RBRACE
+ |AND stmtList RBRACE	 	
 
 stmtList:
   statement SEMICOLON statement
-| statement PIPE      statement
 
 statement:
   block
 | ruleEval
-| expr EQUALS expr
-| expr NEQUALS expr
+| expr EQ expr
+| expr NEQ expr
 | expr GT expr
 | expr GL expr
-| expr GTE expr
-| expr LTE expr
+| expr GEQ expr
+| expr LEQ expr
 
 ruleEval:
-  SYMBOL OPENPAREN params CLOSEPAREN
-| VARIABLE DOT SYMBOL OPENPAREN params CLOSEPAREN
+  ID LPAREN params RPAREN
+| VARIABLE DOT ID LPAREN params RPAREN
+
 
 
 expr:
@@ -73,6 +78,6 @@ expr:
 | expr MINUS  expr { Binop($1, Sub, $3) }
 | expr TIMES  expr { Binop($1, Mul, $3) }
 | expr DIVIDE expr { Binop($1, Div, $3) }
-| NUMBER           { Lit($1) }
+| DIGIT            { Lit($1) }
 | VARIABLE         { Var($1) }
 
