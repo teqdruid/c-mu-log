@@ -47,6 +47,38 @@ The language presented here attempts to fulfill the following requirements:
   further, domain-specific intelligence to be written in the programs.
 \end{itemize}
 
+\section{Lexical}
+\begin{verbatim}
+[' ' '\t' '\r' '\n'] WS
+"/*"     OPENCOMMENT
+"*/"     CLOSECOMMENT
+"//"     COMMENT
+'('      LPAREN
+')'      RPAREN
+'{'      LBRACE
+'}'      RBRACE
+';'      SEMICOLON
+','      COMMA
+'+'      PLUS
+'-'      MINUS
+'*'      TIMES
+'/'      DIVIDE
+"=="     EQ
+"!="     NEQ
+'<'      LT
+"<="     LEQ
+">"      GT
+">="     GEQ
+'@'      AT
+'.'	 DOT
+'['      ARROPEN
+']'      ARRCLOSE
+'"'      QUOTE
+'$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Variable
+['0'-'9']+ Number
+['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Identifier
+\end{verbatim}
+
 \section{Facts}
 Facts define factual relationships.  They have a very similar syntax to rules, except they
 have no code block to make them conditionally true.  Any query which matches a fact is simply
@@ -62,6 +94,9 @@ Example:
   wall(4, 5); //In an environment might mean: there is a wall present at (4,5)
 
 Grammar:
+  Fact -> Identifier ( ParamList );
+  ParamList -> Param | ParamList , Param
+  Param -> Variable | Number | String | Array
 \end{verbatim}
 
 \section{Rules}
@@ -80,11 +115,13 @@ The two above rules are together equivalent to:
   foo(4) {OR: bar(5); bar(6); }
 
 Grammar:
+  Fact -> Identifier ( ParamList ) Block
 \end{verbatim}
 
 \section{Variables}
 Variables represent a value to be solved for.  During rule matching, they will match any
-value or type, but can be constrained in an associated block.
+value or type, but can be constrained in an associated block.  All variables are scoped to
+the rule, so that variable solutions can be shared between subblocks.
 Variables are represented by a dollar sign (\$) then the variable name. The name must
 start with a letter, and is composed of letters, numbers, and underscores.  There is a special
 variable called the anonymous variable which is represented simply by a question mark (?).  It
@@ -94,7 +131,7 @@ Example:
   foo($X, $y, $foo_bar, $bar9, ?) { }
 
 Grammar:
-  variable -> $[a-zA-Z][a-zA-Z0-9_]* | ?
+  Variable -> $[a-zA-Z][a-zA-Z0-9_]* | ?
 \end{verbatim}
 
 \section{Blocks}
@@ -124,8 +161,8 @@ Examples:
  //True if foo or bar are true.
 
 Grammar:
-  block -> { ((AND|OR):)? stmts }
-  stmts -> stmt | stmt stmts
+  Block -> { (Identifer:)? StatementList }
+  StatementList -> Statement | StatementList Statement
 \end{verbatim}
 
 \section{Statements}
@@ -142,20 +179,30 @@ by semicolons.
 Examples:
   1 < $X <= $Y < 10;  // A comparison
   range($X, $Y, 7);   // An eval
+  !range($X, $Y, 7);   // This must not evaluate to true
   {OR: $X > 10; $X < 0; }  //A sub-block with two binary comparisons
 
 Grammar:
+  Statement -> Block | Eval ; | Comparison ;
+  Eval -> (!)? Identifier ( ExprList );
+  ExprList -> Expression | ExprList , Expression
+  Comparison -> Expression ComparisonOp Expression | Expression ComparisonOp Comparison
+  ComparisonOp -> EQ | NEQ | LT | LEQ | GT | GEQ
 \end{verbatim}
 
 \section{Expressions}
-Expressions are used to modify values being passed into comparisons or evals.
+Expressions are used to modify values being passed into comparisons or evals.  They are
+used to modify integers, and supports plus, minus, times, and divide.  Typical infix
+notation and precedence rules are used, and expressions can be grouped with parenthesis.
 
 \begin{verbatim}
 Examples:
-  $r - 10 < $X < $r + 10;  // A comparison
-  range($X, $Y, $r / 3);   // An eval
+  $r - 10 < $X < $r + 10;  // A comparison: $r - 10 and $r + 10 are the expressions
+  range($X, $Y, $r / 3);   // An eval- $r / 3 is the expression here
 
 Grammar:
+  Expression -> Number | String | Variable | Expression Op Expression | ( Expression )
+  Op -> PLUS | MINUS | TIMES | DIVIDE
 \end{verbatim}
 
 \section{Types}
@@ -173,13 +220,22 @@ to equals and not equals comparison operators, they support the dot operator for
 Arrays in C$\mu$LOG behave similarly to functional lists, and are matched similiarly as well.
 They are delimited by [ and ], and elements are comma separated.  The null list (also the tail
 of the list) is denoted by [].  Any number of elements of the array are matched inside of
-fact and rule declarations.  The last element listed in [] must be an array.
+fact and rule declarations.  Arrays only appear as fact and rule parameters.
+The last element listed in [] is an array, and represents the tail of the list.  If the
+elements listed before the last element comprise the entire list, the last element will be
+simply [].
+
 \begin{verbatim}
 Examples:
-
   //A set of rules which ensures that all elements are less than $v
-  lessThan($v, [$head, $tail]) { $head < $v; foo($v, $tail); }
+  lessThan($v, [$head, $tail]) { $head < $v; lessThan($v, $tail); }
   lessThan(?, []);
+
+  //Matches the list (1, 4, 6)
+  foo([1, 4, 6, []]);
+
+  //Invalid
+  foo([1, 4, 6]);
 
   //Prepends $v to array $a
   prepend($v, $a, [$v, $a]);
@@ -188,13 +244,10 @@ Examples:
   list($a, $b, [$a, $b, []]);
 
 Grammar:
+  Array -> [ ArrayElems ]
+  ArrayElems -> ArrayElem | ArrayElem ArrayElems
+  ArrayElem -> Number | String | Variable | []
 \end{verbatim}
-
-%- Delimited by []
-%- Items separated by commas
-%- Only occur as parameters for rules, facts, and evals
-%- Functional-style linked lists
-%- Matching similar to functional list matching
 
 \section{Directives}
 C$\mu$LOG supports a special syntax for interpreter directives.  This allows programs to
@@ -209,6 +262,7 @@ Examples:
   @print("Hello, world!");
 
 Grammar:
+  Directive -> @ Identifier ( ParamList ); 
 \end{verbatim}
 
 \section{Program Modification}
@@ -225,6 +279,7 @@ Examples:
   @forget( agent(8, 10); ); //Forget about the agent at (8, 10)
 
 Grammar:
+  Directive -> @ (learn|forget) ( Fact ); 
 \end{verbatim}
 
 
@@ -247,6 +302,8 @@ Example:
   env.view($X, $Y, $obj); //Query the environment, find out what is at ($X, $Y)
 
 Grammar:
+  DotOp -> Directive | Statement
+  Dot -> Variable . DotOp | Identifier . DotOp
 \end{verbatim}
 
 \section{Example Code}
