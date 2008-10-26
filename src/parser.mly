@@ -41,46 +41,44 @@ param_list:
 | param_list COMMA param     {$3::$1}
 
 param:
-  VARIABLE		{variable($1)}
-| DIGIT			{digits($1)}
-| STRING                {string($1)} 
-| ARRAY			{array($1)}
+  VARIABLE		{Var($1)}
+| DIGIT			{Lit($1)}
+| STRING                {Str($1)} 
+| ARRAY			{Arr($1)}
+
+array:
+ARROPEN param_list ARRCLOSE {Arr(List.rev $2)}
 
 block:
-  LBRACE stmt_list RBRACE {
- |OR stmt_list RBRACE
- |AND stmt_list RBRACE	 	
-
+  LBRACE stmt_list RBRACE {Default(List.rev $2)}
+ |LBRACE ID stmt_list RBRACE{ Blk ($2, List.rev $3)}
+ 	 	
+	
 stmt_list:
   statement SEMICOLON statement
 
 statement:
   block
-| ruleEval
-| expr EQ expr 
-| expr NEQ expr
-| expr GT expr
-| expr LT expr
-| expr GEQ expr
-| expr LEQ expr
+| ruleEval		
+| expr EQ expr		{Comp($1,eq,$3)}
+| expr NEQ expr		{Comp($1,neq,$3)}
+| expr GT expr		{Comp($1,gt,$3)}
+| expr LT expr		{Comp($1,lt,$3)}
+| expr GEQ expr		{Comp($1,geq,$3)}
+| expr LEQ expr		{Comp($1,leq,$3)}
 
 ruleEval:
-  ID LPAREN params RPAREN
-| VARIABLE DOT ID LPAREN params RPAREN
+  ID LPAREN params RPAREN	{Eval($1, $3)}
+| VARIABLE DOT ID LPAREN params RPAREN 
 
 
 
 expr:
-  | expr PLUS   expr { Binop($1, add,   $3) }
-  | expr MINUS  expr { Binop($1, sub,   $3) }
-  | expr TIMES  expr { Binop($1, mult,  $3) }
-  | expr DIVIDE expr { Binop($1, div,   $3) }
-  | expr EQ     expr { Binop($1, equal, $3) }
-  | expr NEQ    expr { Binop($1, neq,   $3) }
-  | expr LT     expr { Binop($1, less,  $3) }
-  | expr LEQ    expr { Binop($1, leq,   $3) }
-  | expr GT     expr { Binop($1, greater,  $3) }
-  | expr GEQ    expr { Binop($1, geq,   $3) }
-| DIGIT            { Lit($1) }
-| VARIABLE         { variable($1) }
+  | expr PLUS   expr 	{ Binop($1, add,   $3) }
+  | expr MINUS  expr 	{ Binop($1, sub,   $3) }
+  | expr TIMES  expr 	{ Binop($1, mult,  $3) }
+  | expr DIVIDE expr 	{ Binop($1, div,   $3) }
+  | DIGIT            	{ Lit($1) } 
+  | VARIABLE         	{ Var($1) }
+  | STRING           	{Str($1)}
 
