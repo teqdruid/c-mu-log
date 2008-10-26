@@ -11,7 +11,7 @@
 %token EQ GT LT GEQ LEQ NEQ
 
 %nonassoc EQ
-%left ASSIGN NEQ
+%left NEQ
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
@@ -27,43 +27,40 @@ main:
 | top top
 
 top:
-  comment
-| culogRule
+culogRule
 
-/*comment:
-  COMMENT TEXT SEMICOLON
-| OPENBLOCKCOMMENT TEXT CLOSEBLOCKCOMMENT*/
 
 culogRule:
-  ID LPAREN params RPAREN SEMICOLON
-| ID LPAREN params RPAREN block
+  /* nothing */ { [] }
+  ID LPAREN param_list RPAREN SEMICOLON	{ $1 ,List.rev($3) }
+| ID LPAREN param_list RPAREN block	   	{   $1, List.rev($3),List.rev($4) } 
 
 
-params:
-  param
-| param COMMA param
+param_list:
+  param		      		{[$1]}
+| param_list COMMA param     {$3::$1}
 
 param:
-  VARIABLE
-| ID
-| DIGIT
-| STRING
+  VARIABLE		{variable($1)}
+| DIGIT			{digits($1)}
+| STRING                {string($1)} 
+| ARRAY			{array($1)}
 
 block:
-  LBRACE stmtList RBRACE
- |OR stmtList RBRACE
- |AND stmtList RBRACE	 	
+  LBRACE stmt_list RBRACE {
+ |OR stmt_list RBRACE
+ |AND stmt_list RBRACE	 	
 
-stmtList:
+stmt_list:
   statement SEMICOLON statement
 
 statement:
   block
 | ruleEval
-| expr EQ expr
+| expr EQ expr 
 | expr NEQ expr
 | expr GT expr
-| expr GL expr
+| expr LT expr
 | expr GEQ expr
 | expr LEQ expr
 
@@ -74,10 +71,16 @@ ruleEval:
 
 
 expr:
-  expr PLUS   expr { Binop($1, Add, $3) }
-| expr MINUS  expr { Binop($1, Sub, $3) }
-| expr TIMES  expr { Binop($1, Mul, $3) }
-| expr DIVIDE expr { Binop($1, Div, $3) }
+  | expr PLUS   expr { Binop($1, add,   $3) }
+  | expr MINUS  expr { Binop($1, sub,   $3) }
+  | expr TIMES  expr { Binop($1, mult,  $3) }
+  | expr DIVIDE expr { Binop($1, div,   $3) }
+  | expr EQ     expr { Binop($1, equal, $3) }
+  | expr NEQ    expr { Binop($1, neq,   $3) }
+  | expr LT     expr { Binop($1, less,  $3) }
+  | expr LEQ    expr { Binop($1, leq,   $3) }
+  | expr GT     expr { Binop($1, greater,  $3) }
+  | expr GEQ    expr { Binop($1, geq,   $3) }
 | DIGIT            { Lit($1) }
-| VARIABLE         { Var($1) }
+| VARIABLE         { variable($1) }
 
