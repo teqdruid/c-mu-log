@@ -23,6 +23,7 @@ rule token = parse
 | ">="     { GEQ }
 | '@'      { AT } 
 | '.'	   { DOT }
+| ':'      { COLON }
 | '['      { ARROPEN }
 | ']'      { ARRCLOSE }
 | '"'      { str lexbuf }
