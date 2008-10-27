@@ -3,7 +3,7 @@
 %token PLUS MINUS TIMES DIVIDE ASSIGN EOF COMMENT 
 %token LBRACE RBRACE LPAREN RPAREN
 %token ARROPEN ARRCLOSE AT DOT
-%token SEMICOLON OR AND COMMA
+%token SEMICOLON OR AND COMMA COLON
 %token <string> ID VARIABLE STRING TEXT
 %token <int> DIGIT
 
@@ -17,23 +17,27 @@
 %left TIMES DIVIDE
 
 
-%start main
-%type < Ast.expr> expr
+%start program
+%type < Ast.program> program
 
 %%
 
+program:
+  main { Program(List.rev $1) }
+
 main:
-  top EOF
-| top top
+  EOF { [] }
+| top main { $1 :: $2 }
 
 top:
-culogRule
+  culogRule { $1 }
+| culogFact { $1 }
 
+culogFact:
+  ID LPAREN param_list RPAREN SEMICOLON	{ Fact($1, Params(List.rev $3) ) }
 
 culogRule:
-  /* nothing */ { [] }
-  ID LPAREN param_list RPAREN SEMICOLON	{ $1 ,List.rev($3) }
-| ID LPAREN param_list RPAREN block	   	{   $1, List.rev($3),List.rev($4) } 
+  ID LPAREN param_list RPAREN block	{ Rule($1, Params(List.rev $3), $5 ) }
 
 
 param_list:
@@ -41,44 +45,40 @@ param_list:
 | param_list COMMA param     {$3::$1}
 
 param:
-  VARIABLE		{Var($1)}
-| DIGIT			{Lit($1)}
-| STRING                {Str($1)} 
-| ARRAY			{Arr($1)}
+  VARIABLE		{ Var($1) }
+| DIGIT			{ Lit($1) }
+| STRING                { Str($1) } 
+| array			{ Arr($1) }
 
 array:
-ARROPEN param_list ARRCLOSE {Arr(List.rev $2)}
+  ARROPEN param_list ARRCLOSE { Array( List.rev $2 ) }
 
 block:
-  LBRACE stmt_list RBRACE {Default(List.rev $2)}
- |LBRACE ID stmt_list RBRACE{ Blk ($2, List.rev $3)}
+  LBRACE stmt_list RBRACE { Block("AND", Stmts( List.rev $2 ) ) } 
+| LBRACE ID COLON stmt_list RBRACE{ Block($2, Stmts( List.rev $4 )) } 
  	 	
 	
 stmt_list:
-  statement SEMICOLON statement
+     { [] }
+/* | statement stmt_list { $1 :: $2 } */
 
 statement:
-  block
-| ruleEval		
-| expr EQ expr		{Comp($1,eq,$3)}
-| expr NEQ expr		{Comp($1,neq,$3)}
-| expr GT expr		{Comp($1,gt,$3)}
-| expr LT expr		{Comp($1,lt,$3)}
-| expr GEQ expr		{Comp($1,geq,$3)}
-| expr LEQ expr		{Comp($1,leq,$3)}
-
-ruleEval:
-  ID LPAREN params RPAREN	{Eval($1, $3)}
-| VARIABLE DOT ID LPAREN params RPAREN 
-
-
+  block { $1 }
+| ID LPAREN param_list RPAREN SEMICOLON   { Eval($1, Params($3)) }
+/* | VARIABLE DOT ID LPAREN param_list RPAREN  */
+| expr EQ expr  SEMICOLON       {Comp($1,Eq,$3)}
+| expr NEQ expr SEMICOLON	{Comp($1,Neq,$3)}
+| expr GT expr  SEMICOLON	{Comp($1,Gt,$3)}
+| expr LT expr	SEMICOLON	{Comp($1,Lt,$3)}
+| expr GEQ expr	SEMICOLON	{Comp($1,Geq,$3)}
+| expr LEQ expr	SEMICOLON	{Comp($1,Leq,$3)}
 
 expr:
-  | expr PLUS   expr 	{ Binop($1, add,   $3) }
-  | expr MINUS  expr 	{ Binop($1, sub,   $3) }
-  | expr TIMES  expr 	{ Binop($1, mult,  $3) }
-  | expr DIVIDE expr 	{ Binop($1, div,   $3) }
-  | DIGIT            	{ Lit($1) } 
-  | VARIABLE         	{ Var($1) }
-  | STRING           	{Str($1)}
+  | expr PLUS   expr 	{ Binop($1, Plus,   $3) }
+  | expr MINUS  expr 	{ Binop($1, Minus,   $3) }
+  | expr TIMES  expr 	{ Binop($1, Mult, $3) }
+  | expr DIVIDE expr 	{ Binop($1, Divide,   $3) }
+  | DIGIT            	{ ELit($1) } 
+  | VARIABLE         	{ EVar($1) }
+  | STRING           	{ EStr($1)}
 
