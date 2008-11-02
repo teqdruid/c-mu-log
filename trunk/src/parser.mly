@@ -3,8 +3,8 @@
 %token PLUS MINUS TIMES DIVIDE ASSIGN EOF COMMENT 
 %token LBRACE RBRACE LPAREN RPAREN
 %token ARROPEN ARRCLOSE AT DOT
-%token SEMICOLON OR AND COMMA COLON
-%token <string> ID VARIABLE STRING TEXT
+%token SEMICOLON OR AND COMMA COLON QUOTE
+%token <string> ID VARIABLE TEXT
 %token <int> DIGIT
 
 /* Comparison tokens */
@@ -24,7 +24,7 @@
 
 program:
   main { Program(List.rev $1) }
-
+  	
 main:
   EOF { [] }
 | top main { $1 :: $2 }
@@ -39,7 +39,6 @@ culogFact:
 culogRule:
   ID LPAREN param_list RPAREN block	{ Rule($1, Params(List.rev $3), $5 ) }
 
-
 param_list:
   param		      		{[$1]}
 | param_list COMMA param     {$3::$1}
@@ -50,6 +49,9 @@ param:
 | STRING                { Str($1) } 
 | array			{ Arr($1) }
 
+STRING: 
+  QUOTE ID QUOTE	{ $2 } 
+ 
 array:
   ARROPEN param_list ARRCLOSE { Array( List.rev $2 ) }
 

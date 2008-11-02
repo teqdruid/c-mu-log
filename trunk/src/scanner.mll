@@ -14,8 +14,7 @@ rule token = parse
 | '-'      { MINUS }
 | '*'      { TIMES }
 | '/'      { DIVIDE }
-| '='      { ASSIGN }
-| "=="     { EQ }
+| "==" | "="  { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
 | "<="     { LEQ }
@@ -26,7 +25,7 @@ rule token = parse
 | ':'      { COLON }
 | '['      { ARROPEN }
 | ']'      { ARRCLOSE }
-| '"'      { str lexbuf }
+| '"'      { QUOTE }
 | '$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as var { VARIABLE(var) }
 | ['0'-'9']+ as lxm { DIGIT(int_of_string lxm) }
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
@@ -37,7 +36,4 @@ and comment = parse
   "*/" { token lexbuf }
 | _    { comment lexbuf }
 
-and str = parse
- '"' {token lexbuf}
-| _  as str { STRING (str)}
 
