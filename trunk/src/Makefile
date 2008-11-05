@@ -1,7 +1,10 @@
-OBJS = parser.cmo scanner.cmo
+OBJS = parser.cmo scanner.cmo printer.cmo
 
 culog : $(OBJS)
 	ocamlc -o culog $(OBJS)
+
+print : $(OBJS) print.cmo
+	ocamlc -o $@ $(OBJS) print.cmo
 
 scanner.ml : scanner.mll
 	ocamllex scanner.mll
