@@ -23,7 +23,7 @@
 %%
 
 program:
-  main { Program(List.rev $1) }
+  main { Program($1) }
   	
 main:
   EOF { [] }
@@ -45,6 +45,7 @@ param_list:
 
 param:
   VARIABLE		{ Var($1) }
+| ID                    { Sym($1) }
 | DIGIT			{ Lit($1) }
 | STRING                { Str($1) } 
 | array			{ Arr($1) }
@@ -56,8 +57,8 @@ array:
   ARROPEN param_list ARRCLOSE { Array( List.rev $2 ) }
 
 block:
-  LBRACE stmt_list RBRACE { Block("AND", Stmts( List.rev $2 ) ) } 
-| LBRACE ID COLON stmt_list RBRACE{ Block($2, Stmts( List.rev $4 )) } 
+  LBRACE stmt_list RBRACE { Block("AND", Stmts( $2 ) ) } 
+| LBRACE ID COLON stmt_list RBRACE{ Block($2, Stmts( $4 )) } 
  	 	
 	
 stmt_list:

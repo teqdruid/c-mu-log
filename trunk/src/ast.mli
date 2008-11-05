@@ -5,6 +5,7 @@ type compoperator = Lt | Leq | Gt | Geq | Eq | Neq
 
 type param = 
     Lit of int
+  | Sym of string
   | Var of string
   | Str of string 
   | Arr of array
@@ -36,7 +37,3 @@ type ruleFact =
 
 type program = Program of ruleFact list
 	
-
-
-	 
-(*digits, variable and string (symbol) are defined in grammar written by Devesh*)
