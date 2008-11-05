@@ -4,7 +4,7 @@
 %token LBRACE RBRACE LPAREN RPAREN
 %token ARROPEN ARRCLOSE AT DOT
 %token SEMICOLON OR AND COMMA COLON QUOTE
-%token <string> ID VARIABLE TEXT
+%token <string> ID VARIABLE 
 %token <int> DIGIT
 
 /* Comparison tokens */
@@ -61,8 +61,8 @@ block:
  	 	
 	
 stmt_list:
-     { [] }
-/* | statement stmt_list { $1 :: $2 } */
+  /*nothing*/   	{ [] }
+ | statement stmt_list  { $1 :: $2 } 
 
 statement:
   block { $1 }
@@ -77,9 +77,9 @@ statement:
 
 expr:
   | expr PLUS   expr 	{ Binop($1, Plus,   $3) }
-  | expr MINUS  expr 	{ Binop($1, Minus,   $3) }
-  | expr TIMES  expr 	{ Binop($1, Mult, $3) }
-  | expr DIVIDE expr 	{ Binop($1, Divide,   $3) }
+  | expr MINUS  expr 	{ Binop($1, Minus,  $3) }
+  | expr TIMES  expr 	{ Binop($1, Mult,   $3) }
+  | expr DIVIDE expr 	{ Binop($1, Divide, $3) }
   | DIGIT            	{ ELit($1) } 
   | VARIABLE         	{ EVar($1) }
   | STRING           	{ EStr($1)}
