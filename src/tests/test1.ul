@@ -1,0 +1,20 @@
+foo(4);
+
+foo(symA, symB);
+
+bar(6);
+
+foo(2) {}
+
+fb($r);
+
+
+foo($a) {OR:
+	2 < $a;
+	$a > 10;
+}
+
+boofar($a, $b) {AND:
+	   foo($a, 6, symA);
+	   bar($b);
+}
