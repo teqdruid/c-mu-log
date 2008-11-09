@@ -1,4 +1,4 @@
-foo(4, 4);
+foo(4,4);
 
 foo(symA);
 

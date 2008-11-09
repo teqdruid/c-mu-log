@@ -1,5 +1,4 @@
 { open Parser }
-
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf }
 | "/*"     { comment lexbuf }
@@ -25,15 +24,17 @@ rule token = parse
 | ':'      { COLON }
 | '['      { ARROPEN }
 | ']'      { ARRCLOSE }
-| '"'      { QUOTE }
+| '"'	   { QUOTE}
 | '$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as var { VARIABLE(var) }
 | ['0'-'9']+ as lxm { DIGIT(int_of_string lxm) }
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
+| [ 'a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' ]* as lxm { ID(lxm) }
+| '"'([^ '"''\t' '\r' '\n']+ as lxm) '"'{STRING1(lxm)}
 | eof 	   { EOF }
-| _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
-and comment = parse
+ and  comment = parse
   "*/" { token lexbuf }
-| _    { comment lexbuf }
+| _  { comment lexbuf }
+
+
 
 
