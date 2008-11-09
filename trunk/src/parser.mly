@@ -4,7 +4,7 @@
 %token LBRACE RBRACE LPAREN RPAREN
 %token ARROPEN ARRCLOSE AT DOT
 %token SEMICOLON OR AND COMMA COLON QUOTE
-%token <string> ID VARIABLE 
+%token <string> ID VARIABLE STRING1 
 %token <int> DIGIT
 
 /* Comparison tokens */
@@ -52,7 +52,10 @@ param:
 
 STRING: 
   QUOTE ID QUOTE	{ $2 } 
+  |STRING1	{ $1 } 
+
  
+
 array:
   ARROPEN param_list ARRCLOSE { Array( List.rev $2 ) }
 
