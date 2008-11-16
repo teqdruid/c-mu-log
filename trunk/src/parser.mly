@@ -40,7 +40,8 @@ culogRule:
   ID LPAREN param_list RPAREN block	{ Rule($1, Params(List.rev $3), $5 ) }
 
 param_list:
-  param		      		{[$1]}
+  {[]}
+| param		      		{[$1]}
 | param_list COMMA param     {$3::$1}
 
 param:
