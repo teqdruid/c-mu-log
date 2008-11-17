@@ -1,0 +1,19 @@
+nofoo(c);
+nofoo(a);
+
+main (a, b);
+
+hello();
+
+foo();
+bar() {AND:
+      foo();
+      hello();
+}
+
+/*foo(a);*/
+
+main () {AND:
+     foo();
+     bar();
+}
