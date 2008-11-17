@@ -32,7 +32,11 @@ main:
 top:
   culogRule { $1 }
 | culogFact { $1 }
+| culogDrective {$1}
 
+
+culogDrective:
+   AT ID LPAREN param_list RPAREN SEMICOLON    { GlobalDirective($2, Params($4)) }
 culogFact:
   ID LPAREN param_list RPAREN SEMICOLON	{ Fact($1, Params(List.rev $3) ) }
 
@@ -79,6 +83,11 @@ statement:
 | expr LT expr	SEMICOLON	{Comp($1,Lt,$3)}
 | expr GEQ expr	SEMICOLON	{Comp($1,Geq,$3)}
 | expr LEQ expr	SEMICOLON	{Comp($1,Leq,$3)}
+| AT ID LPAREN stmt_list RPAREN SEMICOLON    { DirectiveStudy($2, Stmts($4)) }
+| AT ID LPAREN param_list RPAREN SEMICOLON   { Directive($2,Params($4)) }
+| VARIABLE DOT AT ID LPAREN stmt_list RPAREN SEMICOLON {Dot1($1,$4,Stmts($6))}
+| ID DOT ID LPAREN param_list RPAREN SEMICOLON {Dot2($1,$3, Params($5))}
+
 
 expr:
   | expr PLUS   expr 	{ Binop($1, Plus,   $3) }

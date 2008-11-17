@@ -1,3 +1,5 @@
+@attach("agent1.ul");
+
 foo(4);
 
 foo(symA, symB);
@@ -15,8 +17,14 @@ foo($a) {OR:
 	2 < $a;
 	$a > 10;
 }
-
 boofar($a, $b) {AND:
 	   foo($a, 6, symA);
 	   bar($b);
+}
+
+
+
+foo($a,$b){
+  $agent.@learn( wall(4,5); );
+  env.view($X, $Y, $obj);
 }
