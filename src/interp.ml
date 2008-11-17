@@ -149,7 +149,7 @@ let parseDB (prog) =
 	   (fun db cnst -> NoSolution))
       | Ast.Eval (name, Ast.Params(params)) -> 
 	  (fun db cnst -> run_eval db name (sig_to_cnst params))
-      | Ast.Direc (name, Ast.Params(params)) ->
+      | Ast.Directive (name, Ast.Params(params)) ->
 	  parseCompilerDirective name params
       | _ -> (Printf.printf "Unsupported operation\n";
 	      (fun db cnst -> NoSolution))
