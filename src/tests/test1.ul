@@ -1,30 +1,29 @@
-@attach("agent1.ul");
+//@attach("agent1.ul");
 
 foo(4);
 
 foo(symA, symB);
-
-bar(6);
+main(a,b);
 
 foo(2) {}
 
 fb($r);
 			
-fb([1,1]);
+fb("[1,1,[]]");
 
 
-foo($a) {OR:
-	2 < $a;
-	$a > 10;
-}
+//foo($a) {OR:
+//	2 < $a;
+//	$a > 10;
+//}
+
 boofar($a, $b) {AND:
 	   foo($a, 6, symA);
 	   bar($b);
 }
 
 
-
-foo($a,$b){
+/*foo($a,$b){
   $agent.@learn( wall(4,5); );
   env.view($X, $Y, $obj);
-}
+}*/

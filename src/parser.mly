@@ -30,23 +30,24 @@ main:
 | top main { $1 :: $2 }
 
 top:
-  culogRule { $1 }
-| culogFact { $1 }
-| culogDrective {$1}
+  culogRule 		{ $1 }
+| culogFact 		{ $1 }
+| culogDirective   	{ $1 }
 
-
-culogDrective:
-   AT ID LPAREN param_list RPAREN SEMICOLON    { GlobalDirective($2, Params($4)) }
 culogFact:
-  ID LPAREN param_list RPAREN SEMICOLON	{ Fact($1, Params(List.rev $3) ) }
+  ID LPAREN param_list RPAREN SEMICOLON		{ Fact($1, Params(List.rev $3) ) }
 
 culogRule:
-  ID LPAREN param_list RPAREN block	{ Rule($1, Params(List.rev $3), $5 ) }
+  ID LPAREN param_list RPAREN block		{ Rule($1, Params(List.rev $3), $5 ) }
+
+culogDirective:
+ AT ID LPAREN param_list RPAREN SEMICOLON 	{ GlobalDirective($2, Params(List.rev $4)) }
+
 
 param_list:
   {[]}
 | param		      		{[$1]}
-| param_list COMMA param     {$3::$1}
+| param_list COMMA param	{$3::$1}
 
 param:
   VARIABLE		{ Var($1) }
@@ -75,19 +76,23 @@ stmt_list:
 
 statement:
   block { $1 }
-| ID LPAREN param_list RPAREN SEMICOLON   { Eval($1, Params($3)) }
+| ID LPAREN param_list RPAREN SEMICOLON   		{ Eval($1, Params($3)) }
 /* | VARIABLE DOT ID LPAREN param_list RPAREN  */
-| expr EQ expr  SEMICOLON       {Comp($1,Eq,$3)}
-| expr NEQ expr SEMICOLON	{Comp($1,Neq,$3)}
-| expr GT expr  SEMICOLON	{Comp($1,Gt,$3)}
-| expr LT expr	SEMICOLON	{Comp($1,Lt,$3)}
-| expr GEQ expr	SEMICOLON	{Comp($1,Geq,$3)}
-| expr LEQ expr	SEMICOLON	{Comp($1,Leq,$3)}
-| AT ID LPAREN stmt_list RPAREN SEMICOLON    { DirectiveStudy($2, Stmts($4)) }
-| AT ID LPAREN param_list RPAREN SEMICOLON   { Directive($2,Params($4)) }
-| VARIABLE DOT AT ID LPAREN stmt_list RPAREN SEMICOLON {Dot1($1,$4,Stmts($6))}
-| ID DOT ID LPAREN param_list RPAREN SEMICOLON {Dot2($1,$3, Params($5))}
+| expr EQ expr  SEMICOLON     				{Comp($1,Eq,$3)}
+| expr NEQ expr SEMICOLON				{Comp($1,Neq,$3)}
+| expr GT expr  SEMICOLON				{Comp($1,Gt,$3)}
+| expr LT expr	SEMICOLON				{Comp($1,Lt,$3)}
+| expr GEQ expr	SEMICOLON				{Comp($1,Geq,$3)}
+| expr LEQ expr	SEMICOLON				{Comp($1,Leq,$3)}
+| AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params($4))} 
+| AT ID LPAREN direc_list RPAREN SEMICOLON		{DirectiveStudy($2,Stmts(List.rev $4))}
 
+direc_list:
+  /*nothing*/   	{ [] }
+ | directive direc_list  { $1 :: $2 }
+
+directive:
+ ID LPAREN param_list RPAREN 			{Directive($1, Params($3))}
 
 expr:
   | expr PLUS   expr 	{ Binop($1, Plus,   $3) }
@@ -97,4 +102,4 @@ expr:
   | DIGIT            	{ ELit($1) } 
   | VARIABLE         	{ EVar($1) }
   | STRING           	{ EStr($1)}
-
+  	
