@@ -23,13 +23,13 @@ type expr =
   | EStr of string
 
 type stmt =
-    Block of string*stmts                (* {.....} *)
+    Block of string*stmts                	(* {.....} *)
   | Comp of expr*compoperator*expr		(* $5+5<$4  $a=5,$b=6; *)
-  | Eval of string*params		     (* wall(4,5) *)
-  | DirectiveStudy of string*stmts
-  | Directive of string*params       	(*@learn(wall(4,5);)*)
-  | Dot1 of string*string*stmts              (*$agent.@learn(wall(4,5);) *)
-  | Dot2 of string*string*params                   (* env.view($X,$Y,$Obj)*)
+  | Eval of string*params		   	(*wall(4,5) *)
+  | DirectiveStudy of string*stmts		(*@learn(wall(4,5);)*)
+  | Directive of string*params       		
+  | Dot1 of string*string*stmts              	(*$agent.@learn(wall(4,5);) *)
+  | Dot2 of string*string*params          	(* env.view($X,$Y,$Obj)*)
 
 and stmts=Stmts of stmt list  (* statment1;statment2;statement3; *) 
 
