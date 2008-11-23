@@ -3,10 +3,10 @@ OBJS = parser.cmo scanner.cmo printer.cmo trans.cmo
 all: culog print
 
 culog : $(OBJS) interp.cmo
-	ocamlc -o culog $(OBJS) interp.cmo
+	ocamlc -g -o culog $(OBJS) interp.cmo
 
 print : $(OBJS) print.cmo
-	ocamlc -o $@ $(OBJS) print.cmo
+	ocamlc -g -o $@ $(OBJS) print.cmo
 
 scanner.ml : scanner.mll
 	ocamllex scanner.mll
@@ -15,10 +15,10 @@ parser.ml parser.mli : parser.mly
 	ocamlyacc parser.mly
 
 %.cmo : %.ml
-	ocamlc -c $<
+	ocamlc -c -g $<
 
 %.cmi : %.mli
-	ocamlc -c $<
+	ocamlc -c -g $<
 
 srclc:
 	sloccount printer.ml parser.mly scanner.mll interp.ml print.ml

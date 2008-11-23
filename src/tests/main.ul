@@ -1,20 +1,10 @@
-nofoo(c);
-nofoo(a);
+bar(a);
+bar(4);
 
-main (a, b);
-
-hello();
-
-foo();
-bar($x, 5, $y) {AND:
-      5 < $r;
-      foo($x);
-      hello($z);
+foo($x) {OR:
+	bar($x);
 }
 
-/*foo(a);*/
-
-main () {AND:
-     foo();
-     bar();
+main () {OR:
+     foo(5);
 }

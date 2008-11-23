@@ -47,6 +47,7 @@ let match_signature signature name vars =
       (Ast.Lit(a), CEqlInt(b))     -> a == b
     | (Ast.Sym(a), CEqlSymbol (b)) -> (String.compare a b) == 0
     | (Ast.Str(a), CEqlStr    (b)) -> (String.compare a b) == 0
+    | (Ast.TVar(i), _)             -> true
 	(* TODO: Array matching *)
     | (_         , Any)            -> true
     | (_         , _  )            -> false
@@ -56,14 +57,26 @@ let match_signature signature name vars =
       (List.for_all (fun a -> a) (List.map2 match_param signature.params vars))
 ;;
 
+let string_of_cnst = function
+    Any -> "Any"
+  | FalseSol -> "False"
+  | CEqlSymbol(s) -> s
+  | CEqlStr(s) -> "'" ^ s ^ "'"
+  | CEqlInt(i) -> string_of_int i
+(*  | _ -> "!!"*)
+;;
+
+let string_of_eval name vars =
+  name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
+;;
 
 (* TODO: Need constraints list mapping *)
 let rec run_eval db name vars =
-  let rec run_gen nextGen =
+  let rec run_gen tail nextGen =
     let sols = (nextGen ()) in
       match sols with
-	  NoSolution -> run_eval (List.tl db) name vars
-	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen gen))
+	  NoSolution -> run_eval tail name vars
+	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen tail gen))
   in
   let rec eval_loop e = 
     match e with
@@ -73,12 +86,24 @@ let rec run_eval db name vars =
 	  Solution (vars, (fun unit -> eval_loop tail))
       | Rule (signature, exec) :: tail
 	  when match_signature signature name vars ->
-	  run_gen (fun unit -> exec db vars)
+	  run_gen tail (fun unit -> exec db vars)
       | head :: tail -> eval_loop tail
   in
+    print_string (string_of_eval name vars);
     eval_loop db
 ;;
 
+let cnst_of_params params env =
+  let param_to_cnst = function
+      Ast.Lit(i) -> CEqlInt    (i)
+    | Ast.Sym(s) -> CEqlSymbol (s)
+    | Ast.Var(v) -> Any
+    | Ast.TVar(i) -> List.nth env i
+    | Ast.Str(s) -> CEqlStr    (s) 
+    | Ast.Arr(a) -> Any (* TODO: Array Matching *)
+  in
+    List.map param_to_cnst params
+;;
 
 let sig_to_cnst signature =
   let param_to_cnst = function
@@ -97,6 +122,15 @@ let rec list_fill item number =
   then []
   else item :: (list_fill item number);;
 
+let cnst_extend a b = 
+  let delta = (List.length a) - (List.length b) in
+    if delta > 0
+    then (a, List.append b (list_fill Any delta))
+    else if delta < 0
+    then (List.append a (list_fill Any (delta * -1)), b)
+    else (a,b)
+;;
+
 let parseDB (prog) = 
   let parseCompilerDirective name params =
     fun db cnst ->
@@ -114,7 +148,8 @@ let parseDB (prog) =
 	      let rec run_merge aNext bNext =
 		match (aNext, bNext) with
 		    (Solution(aC, aN), Solution(bC, bN)) ->
-		      (let result = List.map2 cAnd aC bC in
+		      ( let (aC, bc) = cnst_extend aC bC in
+			let result = List.map2 cAnd aC bC in
 			 if List.for_all (fun a -> a != FalseSol) result
 			 then Solution(result, 
 				       (fun unit -> run_merge aNext (bN ())))
@@ -149,7 +184,9 @@ let parseDB (prog) =
 	  (Printf.printf "Invalid reduction operator %s\n" redOp;
 	   (fun db cnst -> NoSolution))
       | Ast.Eval (name, Ast.Params(params)) -> 
-	  (fun db cnst -> run_eval db name (sig_to_cnst params))
+	  (fun db cnst -> 
+	     let cnsts = cnst_of_params params cnst in
+	       run_eval db name cnsts)
       | Ast.Directive (name, Ast.Params(params)) ->
 	  parseCompilerDirective name params
       | _ -> (Printf.printf "Unsupported operation\n";
@@ -167,6 +204,7 @@ let parseDB (prog) =
 ;;
 
 let query db s =
+  print_string ("Querying: " ^ s.name ^ "\n");
   run_eval db s.name (sig_to_cnst s.params)
 ;;
 
@@ -181,7 +219,7 @@ let rec dump_db db =
 ;;
     
 let _ = 
-  let lexbuf = Lexing.from_channel stdin in
+  let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let program = Parser.program Scanner.token lexbuf in
   let pDB = parseDB(program) in
   let sGen = query pDB {name = "main"; params = []} in
