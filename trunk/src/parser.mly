@@ -92,7 +92,7 @@ direc_list:
  | directive direc_list  { $1 :: $2 }
 
 directive:
- ID LPAREN param_list RPAREN 			{Directive($1, Params($3))}
+ ID LPAREN param_list RPAREN 			{Eval($1, Params($3))}
 
 expr:
   | expr PLUS   expr 	{ Binop($1, Plus,   $3) }

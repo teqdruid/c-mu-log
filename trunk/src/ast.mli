@@ -7,6 +7,7 @@ type param =
     Lit of int
   | Sym of string
   | Var of string
+  | TVar of int
   | Str of string 
   | Arr of params
 
@@ -20,6 +21,7 @@ type expr =
     Binop of expr*operator*expr   (* 0>$X>=5  $X==$Y 5!=4*)
   | ELit of int
   | EVar of string
+  | RVar of int
   | EStr of string
 
 type stmt =
