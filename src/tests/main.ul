@@ -6,9 +6,10 @@ main (a, b);
 hello();
 
 foo();
-bar() {AND:
-      foo();
-      hello();
+bar($x, 5, $y) {AND:
+      5 < $r;
+      foo($x);
+      hello($z);
 }
 
 /*foo(a);*/

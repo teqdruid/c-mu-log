@@ -85,6 +85,7 @@ let sig_to_cnst signature =
       Ast.Lit(i) -> CEqlInt    (i)
     | Ast.Sym(s) -> CEqlSymbol (s)
     | Ast.Var(v) -> Any
+    | Ast.TVar(i) -> Any
     | Ast.Str(s) -> CEqlStr    (s) 
     | Ast.Arr(a) -> Any (* TODO: Array Matching *)
   in
@@ -160,7 +161,8 @@ let parseDB (prog) =
     | Ast.Fact (name, Ast.Params(parms))            -> 
 	Fact ({ name = name; params = parms}) 
   in
-    match prog with
+  let tProg = Trans.translate(prog) in
+    match tProg with
 	Ast.Program (ruleFacts) -> List.map parseRF ruleFacts
 ;;
 
