@@ -2,7 +2,7 @@
 *  print.ml
 *
 *  Started on  Wed Nov  5 15:13:52 2008 John Demme
-*  Last update Mon Nov 24 16:03:06 2008 John Demme
+*  Last update Mon Nov 24 17:07:48 2008 John Demme
 *)
 
 type var_cnst = 
@@ -102,29 +102,6 @@ let string_of_eval name vars =
   name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
 ;;
 
-(* TODO: Need constraints list mapping *)
-let rec run_eval db name vars =
-  let rec run_gen tail nextGen =
-    let sols = (nextGen ()) in
-      match sols with
-	  NoSolution -> run_eval tail name vars
-	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen tail gen))
-  in
-  let rec eval_loop e = 
-    match e with
-	[] -> NoSolution
-      | Fact (signature) :: tail
-	  when match_signature signature name vars ->
-	  Solution (vars, (fun unit -> eval_loop tail))
-      | Rule (signature, exec) :: tail
-	  when match_signature signature name vars ->
-	  run_gen tail (fun unit -> exec db vars)
-      | head :: tail -> eval_loop tail
-  in
-    (*print_string ("In: " ^ (string_of_eval name vars));*)
-    eval_loop db
-;;
-
 let cnst_of_params params env =
   let param_to_cnst = function
       Ast.Lit(i) -> CEqlInt    (i)
@@ -149,6 +126,30 @@ let sig_to_cnst signature =
     | Ast.Arr(a) -> Any (* TODO: Array Matching *)
   in
     List.map param_to_cnst signature
+;;
+
+(* TODO: Need constraints list mapping *)
+let rec run_eval db name vars =
+  let rec run_gen tail nextGen =
+    let sols = (nextGen ()) in
+      match sols with
+	  NoSolution -> run_eval tail name vars
+	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen tail gen))
+  in
+  let rec eval_loop e = 
+    match e with
+	[] -> NoSolution
+      | Fact (signature) :: tail
+	  when match_signature signature name vars ->
+	  Solution (cnstAndAll vars (sig_to_cnst signature.params),
+		    (fun unit -> eval_loop tail))
+      | Rule (signature, exec) :: tail
+	  when match_signature signature name vars ->
+	  run_gen tail (fun unit -> exec db vars)
+      | head :: tail -> eval_loop tail
+  in
+    (*print_string ("In: " ^ (string_of_eval name vars));*)
+    eval_loop db
 ;;
 
 let rec list_replace i e list =
