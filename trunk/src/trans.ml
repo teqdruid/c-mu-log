@@ -58,6 +58,8 @@ let translate prog =
 	    (get_expr_var_mapping expr1 (get_expr_var_mapping expr2 bindings))
       | Eval(name, Params(params)) :: tail ->
 	  get_stmts_var_mapping tail (get_eval_var_mapping params bindings)
+      | Directive(name, Params(params)) :: tail ->
+	  get_stmts_var_mapping tail (get_eval_var_mapping params bindings)
       | _ :: tail ->
 	  get_stmts_var_mapping tail bindings
   in
@@ -91,6 +93,9 @@ let translate prog =
 	    (replace_stmts_var_mapping tail bindings)
       | Eval(name, Params(params)) :: tail ->
 	  Eval(name, Params(replace_params_var_mapping params bindings))::
+	    (replace_stmts_var_mapping tail bindings)
+      | Directive(n, Params(params)) :: tail ->
+	  Directive(n, Params(replace_params_var_mapping params bindings))::
 	    (replace_stmts_var_mapping tail bindings)
       | i :: tail ->
 	  i :: (replace_stmts_var_mapping tail bindings)

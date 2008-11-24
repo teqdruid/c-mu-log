@@ -21,7 +21,8 @@ parser.ml parser.mli : parser.mly
 	ocamlc -c -g $<
 
 srclc:
-	sloccount printer.ml parser.mly scanner.mll interp.ml print.ml
+	sloccount printer.ml parser.mly scanner.mll interp.ml \
+	print.ml trans.ml Makefile *.py
 
 tstlc:
 	wc -l tests/*.ul
