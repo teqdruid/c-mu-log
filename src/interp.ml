@@ -13,6 +13,9 @@ type var_cnst =
   | CEqlSymbol of string
   | CEqlInt    of int
   | CEqlStr    of string
+  | CLT        of int
+  | CGT        of int
+  | CRange     of int*int
 ;;
 
 type cnst = var_cnst list;;
@@ -89,7 +92,7 @@ let rec run_eval db name vars =
 	  run_gen tail (fun unit -> exec db vars)
       | head :: tail -> eval_loop tail
   in
-    print_string ("In: " ^ (string_of_eval name vars));
+    (*print_string ("In: " ^ (string_of_eval name vars));*)
     eval_loop db
 ;;
 
@@ -102,8 +105,8 @@ let cnst_of_params params env =
     | Ast.Str(s) -> CEqlStr    (s) 
     | Ast.Arr(a) -> Any (* TODO: Array Matching *)
   in
-    print_string (string_of_eval "cop_env" env);
-    print_string ("cop: " ^ (Printer.string_of_params (Ast.Params(params))) ^ "\n");
+    (*print_string (string_of_eval "cop_env" env);
+    print_string ("cop: " ^ (Printer.string_of_params (Ast.Params(params))) ^ "\n");*)
     List.map param_to_cnst params
 ;;
 
@@ -144,10 +147,27 @@ let rec list_replace i e list =
 
 let parseDB (prog) = 
   let parseCompilerDirective name params =
-    fun db cnst ->
-      (print_string "Compiler directive\n";
-       NoSolution) (* TODO: This will cause AND blocks to fail.  Any will 
-		      cause OR blocks to always succeed. Hack a fix*)
+    let nc = String.compare name in
+      if (nc "print") == 0
+      then
+	fun db cnst ->
+	  let print_param param =
+	    match param with
+		Ast.Lit(i) -> print_int i
+	      | Ast.Str(s) -> print_string s
+	      | Ast.Sym(s) -> print_string s
+	      | Ast.TVar(i) -> print_int i (*print_string (string_of_cnst (List.nth cnst i))*)
+	      | _ -> ()
+	  in
+	    (ignore (List.map print_param params);
+	     print_string "\n";
+	     Solution([Any], fun () -> NoSolution))
+	       (* TODO: This will cause AND blocks to fail.  Any will 
+		  cause OR blocks to always succeed. Hack a fix*)
+      else
+	(print_string "Unknown compiler directive";
+	 fun db cnst ->
+	   NoSolution)
   in
   let rec parseAndBlock stmts = 
     match stmts with
@@ -205,7 +225,6 @@ let parseDB (prog) =
 	     NoSolution -> NoSolution
 	   | Solution(rCnsts, nxt) ->
 	       let rCnsts = revMap rCnsts in
-		 print_string ("Out: " ^ (string_of_eval name rCnsts));
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
@@ -239,7 +258,6 @@ let parseDB (prog) =
 ;;
 
 let query db s =
-  print_string ("Querying: " ^ s.name ^ "\n");
   run_eval db s.name (sig_to_cnst s.params)
 ;;
 
@@ -252,16 +270,22 @@ let rec dump_db db =
     | Fact(s) :: tail -> print_sig s; print_string ";\n"; dump_db tail
     | Rule(s, f) :: tail -> print_sig s; print_string " {}\n"; dump_db tail
 ;;
-    
+
+let rec iter_sols nxt =
+  match nxt with
+      NoSolution -> print_string "No more solutions\n"
+    | Solution(c,n) -> 
+	(print_string "Solution\n");
+	iter_sols (n ())
+;;
+
 let _ = 
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let program = Parser.program Scanner.token lexbuf in
   let pDB = parseDB(program) in
-  let sGen = query pDB {name = "main"; params = []} in
-    print_string "Database dump:\n";
+    (*print_string "Database dump:\n";
     dump_db pDB;
-    print_string "\n";
-    match sGen with
-	NoSolution -> print_string "main evaluates false\n"
-      | Solution (c, n) -> print_string "main evaluates true\n"
+    print_string "\n";*)
+    let sGen = query pDB {name = "main"; params = []} in
+      iter_sols sGen
 ;;

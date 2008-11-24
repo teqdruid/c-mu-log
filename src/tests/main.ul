@@ -6,6 +6,6 @@ foo($x, $y) {AND:
 	bar($y);
 }
 
-main () {
+main () {AND:
      foo(a, 4);
 }
