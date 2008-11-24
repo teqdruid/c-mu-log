@@ -89,7 +89,7 @@ let rec run_eval db name vars =
 	  run_gen tail (fun unit -> exec db vars)
       | head :: tail -> eval_loop tail
   in
-    print_string (string_of_eval name vars);
+    print_string ("In: " ^ (string_of_eval name vars));
     eval_loop db
 ;;
 
@@ -102,6 +102,8 @@ let cnst_of_params params env =
     | Ast.Str(s) -> CEqlStr    (s) 
     | Ast.Arr(a) -> Any (* TODO: Array Matching *)
   in
+    print_string (string_of_eval "cop_env" env);
+    print_string ("cop: " ^ (Printer.string_of_params (Ast.Params(params))) ^ "\n");
     List.map param_to_cnst params
 ;;
 
@@ -120,7 +122,7 @@ let sig_to_cnst signature =
 let rec list_fill item number = 
   if number == 0
   then []
-  else item :: (list_fill item number);;
+  else item :: (list_fill item (number - 1));;
 
 let cnst_extend a b = 
   let delta = (List.length a) - (List.length b) in
@@ -129,6 +131,15 @@ let cnst_extend a b =
     else if delta < 0
     then (List.append a (list_fill Any (delta * -1)), b)
     else (a,b)
+;;
+
+let rec list_replace i e list =
+  match list with
+      [] -> []
+    | hd :: tl ->
+	if i == 0
+	then e :: tl
+	else hd :: (list_replace (i - 1) e tl)
 ;;
 
 let parseDB (prog) = 
@@ -148,13 +159,13 @@ let parseDB (prog) =
 	      let rec run_merge aNext bNext =
 		match (aNext, bNext) with
 		    (Solution(aC, aN), Solution(bC, bN)) ->
-		      ( let (aC, bc) = cnst_extend aC bC in
+		      ( let (aC, bC) = cnst_extend aC bC in
 			let result = List.map2 cAnd aC bC in
 			 if List.for_all (fun a -> a != FalseSol) result
 			 then Solution(result, 
 				       (fun unit -> run_merge aNext (bN ())))
 			 else run_merge aNext (bN ()))
-		  | (Solution(cnst, aN), NoSolution) -> run_merge (aN ()) (n db cnst)
+		  | (Solution(sCnst, aN), NoSolution) -> run_merge (aN ()) (n db cnst)
 		  | (NoSolution, _) -> NoSolution
 	      in
 		run_merge (s db cnst) (n db cnst)
@@ -172,6 +183,32 @@ let parseDB (prog) =
 						    (fun unit -> runOr (nxt ())))
 	      in
 		runOr (currStmt db cnst)
+  and parseEval name params =
+    fun db cnst -> 
+       let cnsts = cnst_of_params params cnst in
+       let revMap rCnsts = 	 
+	 let revMapIndv cnsts param cnst = 
+	   match param with 
+	       Ast.TVar(i) -> 
+		 let delta = i - (List.length cnsts) in
+		   if delta == 0
+		   then List.append cnsts [cnst]
+		   else if delta > 0
+		   then List.append cnsts (List.append (list_fill Any i) [cnst])
+		   else list_replace i cnst cnsts
+	     | _       -> cnsts
+	 in
+	   List.fold_left2 revMapIndv [] params rCnsts in
+       let nxt = run_eval db name cnsts in
+       let rec doNxt nxt =
+	 match nxt with 
+	     NoSolution -> NoSolution
+	   | Solution(rCnsts, nxt) ->
+	       let rCnsts = revMap rCnsts in
+		 print_string ("Out: " ^ (string_of_eval name rCnsts));
+		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
+       in
+	 doNxt nxt
   and parseStatement statement = 
     match statement with 
 	Ast.Block (redOp, Ast.Stmts(statements))
@@ -184,9 +221,7 @@ let parseDB (prog) =
 	  (Printf.printf "Invalid reduction operator %s\n" redOp;
 	   (fun db cnst -> NoSolution))
       | Ast.Eval (name, Ast.Params(params)) -> 
-	  (fun db cnst -> 
-	     let cnsts = cnst_of_params params cnst in
-	       run_eval db name cnsts)
+	  parseEval name params
       | Ast.Directive (name, Ast.Params(params)) ->
 	  parseCompilerDirective name params
       | _ -> (Printf.printf "Unsupported operation\n";
