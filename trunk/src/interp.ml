@@ -41,15 +41,44 @@ let cAnd a b =
     | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 == String.compare s1 s2 ) -> a
     | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2 ) -> a
     | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2 ) -> a
+    | (CEqlInt(i1),    CGT(i2))        when (i1 > i2) -> a
+    | (CGT(i1),        CEqlInt(i2))    when (i2 > i1) -> a
+    | (CEqlInt(i1),    CLT(i2))        when (i1 < i2) -> a
+    | (CLT(i1),        CEqlInt(i2))    when (i2 < i1) -> a
+    | (CLT(i1),        CLT(i2))        -> CLT(min i1 i2)
+    | (CGT(i1),        CGT(i2))        -> CLT(max i1 i2)
+    | (CGT(i1),        CLT(i2))        when (i1 < i2) -> CRange(i1, i2)
+    | (CLT(i2),        CGT(i1))        when (i1 < i2) -> CRange(i1, i2)
     | (_, _) -> FalseSol
 ;;
 
+let rec list_fill item number = 
+  if number <= 0
+  then []
+  else item :: (list_fill item (number - 1));;
+
+let cnst_extend a b = 
+  let delta = (List.length a) - (List.length b) in
+    if delta > 0
+    then (a, List.append b (list_fill Any delta))
+    else if delta < 0
+    then (List.append a (list_fill Any (delta * -1)), b)
+    else (a,b)
+;;
+
+let cnstAndAll aC bC =
+  let (aC, bC) = cnst_extend aC bC in
+    List.map2 cAnd aC bC
+;;
 
 let match_signature signature name vars =
   let match_param param var = match (param, var) with
       (Ast.Lit(a), CEqlInt(b))     -> a == b
     | (Ast.Sym(a), CEqlSymbol (b)) -> (String.compare a b) == 0
     | (Ast.Str(a), CEqlStr    (b)) -> (String.compare a b) == 0
+    | (Ast.Lit(a), CLT(b))         -> a < b
+    | (Ast.Lit(a), CGT(b))         -> a > b
+    | (Ast.Lit(a), CRange(b,c))    -> b < a && a < c
     | (Ast.TVar(i), _)             -> true
 	(* TODO: Array matching *)
     | (_         , Any)            -> true
@@ -66,7 +95,9 @@ let string_of_cnst = function
   | CEqlSymbol(s) -> s
   | CEqlStr(s) -> "'" ^ s ^ "'"
   | CEqlInt(i) -> string_of_int i
-(*  | _ -> "!!"*)
+  | CLT(i)     -> "<" ^ (string_of_int i)
+  | CGT(i)     -> ">" ^ (string_of_int i)
+  | CRange(a,b)-> (string_of_int a) ^ ".." ^ (string_of_int b)
 ;;
 
 let string_of_eval name vars =
@@ -122,20 +153,6 @@ let sig_to_cnst signature =
     List.map param_to_cnst signature
 ;;
 
-let rec list_fill item number = 
-  if number == 0
-  then []
-  else item :: (list_fill item (number - 1));;
-
-let cnst_extend a b = 
-  let delta = (List.length a) - (List.length b) in
-    if delta > 0
-    then (a, List.append b (list_fill Any delta))
-    else if delta < 0
-    then (List.append a (list_fill Any (delta * -1)), b)
-    else (a,b)
-;;
-
 let rec list_replace i e list =
   match list with
       [] -> []
@@ -179,8 +196,7 @@ let parseDB (prog) =
 	      let rec run_merge aNext bNext =
 		match (aNext, bNext) with
 		    (Solution(aC, aN), Solution(bC, bN)) ->
-		      ( let (aC, bC) = cnst_extend aC bC in
-			let result = List.map2 cAnd aC bC in
+		      ( let result = cnstAndAll aC bC in
 			 if List.for_all (fun a -> a != FalseSol) result
 			 then Solution(result, 
 				       (fun unit -> run_merge aNext (bN ())))
@@ -228,6 +244,38 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
+  and parseCompOp op e1 e2 = 
+    let compOp i flip =
+      if flip then
+	match op with
+	    Ast.Lt -> CGT(i)
+	  | Ast.Gt -> CLT(i)
+	  | Ast.Leq -> CGT(i + 1)
+	  | Ast.Geq -> CLT(i - 1)
+	  | Ast.Eq  -> CEqlInt(i)
+      else
+	match op with
+	    Ast.Lt -> CLT(i)
+	  | Ast.Gt -> CGT(i)
+	  | Ast.Leq -> CLT(i - 1)
+	  | Ast.Geq -> CGT(i + 1)
+	  | Ast.Eq  -> CEqlInt(i)
+    in
+    let doAnd myCnsts db cnst =
+      let sol = cnstAndAll myCnsts cnst in
+	(*(print_string (string_of_eval "" myCnsts));
+	(print_string (string_of_eval "" cnst));*)
+	if List.for_all (fun a -> a != FalseSol) sol
+	then Solution(sol, fun () -> NoSolution)
+	else NoSolution
+    in
+    match (e1, e2) with
+	(Ast.ELit(i), Ast.RVar(v)) -> 
+	  doAnd ((list_fill Any (v - 1)) @ [(compOp i true)])
+      |	(Ast.RVar(v), Ast.ELit(i)) -> 
+	  doAnd ((list_fill Any (v - 1)) @ [(compOp i false)])
+      | _ -> (print_string "Unsupported comparison\n";
+	      fun db cnst -> NoSolution)
   and parseStatement statement = 
     match statement with 
 	Ast.Block (redOp, Ast.Stmts(statements))
@@ -243,6 +291,8 @@ let parseDB (prog) =
 	  parseEval name params
       | Ast.Directive (name, Ast.Params(params)) ->
 	  parseCompilerDirective name params
+      | Ast.Comp(e1, compOp, e2) ->
+	  parseCompOp compOp e1 e2
       | _ -> (Printf.printf "Unsupported operation\n";
 	      (fun db cnst -> NoSolution))
   in

@@ -26,8 +26,8 @@ for test in glob.glob("tests/*.ul"):
     if not os.path.exists(testOut):
         print "Warning, no comparison output exists for ", test
         continue
-    print "Running test..."
-    if run_and_compare("./culog %s" % test, testOut):
+    print "Running %s..." % test
+    if run_and_compare("./culog %s 2>&1" % test, testOut):
         print "\tok."
     else:
-        print "FAIL!"
+        print "\tFAIL!"

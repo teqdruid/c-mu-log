@@ -26,6 +26,7 @@ srclc:
 
 tstlc:
 	wc -l tests/*.ul
+	wc -l tests/*.out
 
 .PHONY : clean
 clean :
