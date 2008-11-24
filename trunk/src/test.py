@@ -27,7 +27,11 @@ for test in glob.glob("tests/*.ul"):
         print "Warning, no comparison output exists for ", test
         continue
     print "Running %s..." % test
-    if run_and_compare("./culog %s 2>&1" % test, testOut):
+    if (test.find("/pr") != -1):
+        prog = "print <"
+    else:
+        prog = "culog"
+    if run_and_compare("./%s %s 2>&1" % (prog, test), testOut):
         print "\tok."
     else:
         print "\tFAIL!"
