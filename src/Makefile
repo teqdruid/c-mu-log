@@ -1,9 +1,12 @@
-OBJS = parser.cmo scanner.cmo printer.cmo trans.cmo
+OBJS = parser.cmo scanner.cmo printer.cmo trans.cmo interp.cmo
 
-all: culog print
+all: culog print pwall
 
-culog : $(OBJS) interp.cmo
-	ocamlc -g -o culog $(OBJS) interp.cmo
+culog : $(OBJS) culog.cmo
+	ocamlc -g -o culog $(OBJS) culog.cmo
+
+pwall : $(OBJS) pwall.cmo
+	ocamlc -g -o pwall $(OBJS) pwall.cmo
 
 print : $(OBJS) print.cmo
 	ocamlc -g -o $@ $(OBJS) print.cmo
