@@ -1,10 +1,11 @@
 bar(a);
 bar(4);
 
-foo($x) {OR:
+foo($x, $y) {AND:
 	bar($x);
+	bar($y);
 }
 
-main () {OR:
-     foo(5);
+main () {
+     foo(a, 4);
 }
