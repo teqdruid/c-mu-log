@@ -88,11 +88,10 @@ statement:
 | AT ID LPAREN direc_list RPAREN SEMICOLON		{DirectiveStudy($2,Stmts(List.rev $4))}
 
 direc_list:
-  /*nothing*/   	{ [] }
  | directive direc_list  { $1 :: $2 }
 
 directive:
- ID LPAREN param_list RPAREN 			{Eval($1, Params($3))}
+ ID LPAREN param_list RPAREN 			{Directive($1, Params($3))}
 
 expr:
   | expr PLUS   expr 	{ Binop($1, Plus,   $3) }
