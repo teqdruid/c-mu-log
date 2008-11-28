@@ -85,10 +85,14 @@ statement:
 | expr GEQ expr	SEMICOLON				{Comp($1,Geq,$3)}
 | expr LEQ expr	SEMICOLON				{Comp($1,Leq,$3)}
 | AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params($4))} 
-| AT ID LPAREN direc_list RPAREN SEMICOLON		{DirectiveStudy($2,Stmts(List.rev $4))}
+| AT ID LPAREN direc_list_first RPAREN SEMICOLON		{DirectiveStudy($2,Stmts(List.rev $4))}
+
+direc_list_first:
+directive COMMA direc_list	{ $1 :: $3 }
 
 direc_list:
- | directive direc_list  { $1 :: $2 }
+{[]}
+| directive COMMA direc_list  { $1 :: $3 }
 
 directive:
  ID LPAREN param_list RPAREN 			{Directive($1, Params($3))}
