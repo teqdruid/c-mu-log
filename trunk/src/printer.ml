@@ -25,13 +25,17 @@ let string_of_operator = function
 
 let rec string_of_expr = function 
     Binop(e1, o, e2) -> (string_of_expr e1) ^ (string_of_operator o) ^ (string_of_expr e2)
-  | ELit(i) -> string_of_int i
+  | ELit(op,i) -> (match op with 
+                    Minus -> "-" ^ string_of_int i
+		   |Plus -> string_of_int i)			
   | EVar(s) -> s
   | RVar(i) -> "$" ^ (string_of_int i)
   | EStr(s) -> s
 
 let rec string_of_param = function
-    Lit(i) -> string_of_int i
+    Lit(op,i) -> (match op with 
+                    Minus -> "-" ^ string_of_int i
+		   |Plus -> string_of_int i)
   | Sym(s) -> s
   | Var(s) -> s
   | TVar(i) -> "$" ^ (string_of_int i)

@@ -71,12 +71,12 @@ let cnstAndAll aC bC =
 
 let match_signature signature name vars =
   let match_param param var = match (param, var) with
-      (Ast.Lit(a), CEqlInt(b))     -> a == b
+      (Ast.Lit(op,a), CEqlInt(b))     -> a == b
     | (Ast.Sym(a), CEqlSymbol (b)) -> (String.compare a b) == 0
     | (Ast.Str(a), CEqlStr    (b)) -> (String.compare a b) == 0
-    | (Ast.Lit(a), CLT(b))         -> a < b
-    | (Ast.Lit(a), CGT(b))         -> a > b
-    | (Ast.Lit(a), CRange(b,c))    -> b < a && a < c
+    | (Ast.Lit(op,a), CLT(b))         -> a < b
+    | (Ast.Lit(op,a), CGT(b))         -> a > b
+    | (Ast.Lit(op,a), CRange(b,c))    -> b < a && a < c
     | (Ast.TVar(i), _)             -> true
 	(* TODO: Array matching *)
     | (_         , Any)            -> true
@@ -104,7 +104,7 @@ let string_of_eval name vars =
 
 let cnst_of_params params env =
   let param_to_cnst = function
-      Ast.Lit(i) -> CEqlInt    (i)
+      Ast.Lit(op,i) -> CEqlInt    (i)
     | Ast.Sym(s) -> CEqlSymbol (s)
     | Ast.Var(v) -> Any
     | Ast.TVar(i) -> List.nth env i
@@ -118,7 +118,7 @@ let cnst_of_params params env =
 
 let sig_to_cnst signature =
   let param_to_cnst = function
-      Ast.Lit(i) -> CEqlInt    (i)
+      Ast.Lit(op,i) -> CEqlInt    (i)
     | Ast.Sym(s) -> CEqlSymbol (s)
     | Ast.Var(v) -> Any
     | Ast.TVar(i) -> Any
@@ -169,7 +169,7 @@ let parseDB (prog) =
 	fun db cnst ->
 	  let print_param param =
 	    match param with
-		Ast.Lit(i) -> print_int i
+		Ast.Lit(op, i) -> print_int i
 	      | Ast.Str(s) -> print_string s
 	      | Ast.Sym(s) -> print_string s
 	      | Ast.TVar(i) -> print_int i (*print_string (string_of_cnst (List.nth cnst i))*)
@@ -269,9 +269,9 @@ let parseDB (prog) =
 	else NoSolution
     in
     match (e1, e2) with
-	(Ast.ELit(i), Ast.RVar(v)) -> 
+	(Ast.ELit(op,i), Ast.RVar(v)) -> 
 	  doAnd ((list_fill Any (v - 1)) @ [(compOp i true)])
-      |	(Ast.RVar(v), Ast.ELit(i)) -> 
+      |	(Ast.RVar(v), Ast.ELit(op,i)) -> 
 	  doAnd ((list_fill Any (v - 1)) @ [(compOp i false)])
       | _ -> (print_string "Unsupported comparison\n";
 	      fun db cnst -> NoSolution)

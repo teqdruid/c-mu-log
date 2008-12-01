@@ -20,7 +20,7 @@ rule token = parse
   | ">"      { GT }
   | ">="     { GEQ }
   | '@'      { AT } 
-  | '.'	   { DOT }
+  | '.'	     { DOT }
   | ':'      { COLON }
   | '['      { ARROPEN }
   | ']'      { ARRCLOSE }

@@ -1,1 +1,6 @@
 foo(4,5);
+@learn("$x");
+foo(){OR:
+@learn(wall(4,5););
+//@forget( wall(2,3); );
+}

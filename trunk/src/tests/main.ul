@@ -1,11 +1,23 @@
-bar(a);
-bar(4);
+/* test to find the no. solutions one gets under given constraints*/
 
-foo($x, $y) {AND:
-	bar($x);
-	bar($y);
-}
+wall(3,4);
+wall(4,8);
+wall(6,8);
+wall($X,$Y) {OR:
+	$X>=10;
+	$X<=15;	
+	$Y<=15;
+	$Y>=10;
+	}
+wall(){}
 
-main () {AND:
-     foo(a, 4);
-}
+
+
+main ()
+	{OR:
+	wall(-12,12);
+	wall(-4,8);
+	wall(10,10);
+	wall(1,1);	
+	}		
+		

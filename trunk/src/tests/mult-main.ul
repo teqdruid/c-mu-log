@@ -1,9 +1,10 @@
-main(a,b);
+//main(a,b);
 //@main("asdf");
-main(dfsdf){@learn("dfdsf");
-@learn(wall(4,5));
+main(dfsdf)
+{
+wall(4,5);
 }
-@learn();
+
 
 
  
