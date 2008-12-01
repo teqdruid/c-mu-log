@@ -53,15 +53,11 @@ param_list:
 param:
   VARIABLE		{ Var($1) }
 | ID                    { Sym($1) }
-| SIGN DIGIT		{ Lit($1,$2) }
+| DIGIT 		{ Lit($1) }
+| PLUS DIGIT		{ Lit($2) }
+| MINUS DIGIT		{ Lit(-1*$2) }
 | STRING                { Str($1) } 
 | array			{ Arr($1) }
-
-
-SIGN:
-         {Plus}
- | PLUS  {Plus}
- | MINUS {Minus}
 
 STRING: 
  STRING1 	{ $1 } 
@@ -109,7 +105,9 @@ expr:
   | expr MINUS  expr 	{ Binop($1, Minus,  $3) }
   | expr TIMES  expr 	{ Binop($1, Mult,   $3) }
   | expr DIVIDE expr 	{ Binop($1, Divide, $3) }
-  | SIGN DIGIT            	{ ELit($1,$2) } 
+  | DIGIT            	{ ELit($1) } 
+  | MINUS DIGIT         { ELit(-1*$2) } 
+  | PLUS DIGIT          { ELit($2) } 
   | VARIABLE         	{ EVar($1) }
   | STRING           	{ EStr($1)}
   
