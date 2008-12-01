@@ -15,6 +15,7 @@ wall(){}
 
 main ()
 	{OR:
+	@print("Hello");
 	wall(-12,12);
 	wall(-4,8);
 	wall(10,10);

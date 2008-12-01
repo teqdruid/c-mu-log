@@ -38,6 +38,7 @@ and stmts=Stmts of stmt list  (* statment1;statment2;statement3; *)
 
 type ruleFact = 
     Rule of string * params * stmt
+  | TRule of string * params * int * stmt * stmt list
   | Fact of string * params
   | GlobalDirective of string*params (*@attach("dfsfsa")*) (*@print("ddafafa")*)
 

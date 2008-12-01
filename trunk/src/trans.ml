@@ -100,12 +100,44 @@ let translate prog =
       | i :: tail ->
 	  i :: (replace_stmts_var_mapping tail bindings)
   in
+  let max_index s i l =
+    if i > l
+    then i
+    else l
+  in
+  let rec filterSE stmts =
+    match stmts with
+	[] -> []
+      | Block(redOp, Stmts(stmts)) :: tail ->
+	  Block(redOp, Stmts(filterSE stmts)) :: filterSE tail
+      | Directive(n, p) :: tail ->
+	  filterSE tail
+      | head :: tail  ->
+	  head :: filterSE tail
+  in
+  let rec filterNSE stmts = 
+    match stmts with
+	[] -> []
+      | Block(redOp, Stmts(stmts)) :: tail ->
+	  List.append (filterNSE stmts) (filterNSE tail)
+      | Directive(n, p) :: tail ->
+	  Directive(n,p) :: filterNSE tail
+      | head :: tail  ->
+	  filterSE tail
+  in
   let rule_translate i = match i with
       Rule(name, Params(params), stmt) -> 
 	let bindings = get_stmts_var_mapping [stmt]
-	  (get_params_var_mapping params StringMap.empty) in
-	  Rule(name, Params(replace_params_var_mapping params bindings),
-	       List.hd (replace_stmts_var_mapping [stmt] bindings))
+	  (get_params_var_mapping params StringMap.empty)
+	in
+	let replacedStmts = 
+	  replace_stmts_var_mapping [stmt] bindings
+	in
+	  TRule(name,
+		Params(replace_params_var_mapping params bindings),
+		1 + (StringMap.fold max_index bindings (-1)),
+		List.hd (filterSE replacedStmts),
+		filterNSE replacedStmts)
     | _ -> i
   in
     match prog with
