@@ -4,25 +4,23 @@ type compoperator = Lt | Leq | Gt | Geq | Eq | Neq
 (* type study = learn | forget *)
 
 type param = 
-    Lit of operator * int
-  | Sym of  string
-  | Var of string
+    Lit  of int
+  | Sym  of string
+  | Var  of string
   | TVar of int
-  | Str of string 
-  | Arr of params
+  | Str  of string 
+  | Arr  of params
 
 and params = 
-   Params of param list
-   | Array of param list
-
-	
+    Params of param list
+  | Array of param list
 
 type expr =
     Binop of expr*operator*expr   (* 0>$X>=5  $X==$Y 5!=4*)
-  | ELit of operator*int
-  | EVar of string
-  | RVar of int
-  | EStr of string
+  | ELit  of int
+  | EVar  of string
+  | RVar  of int
+  | EStr  of string
 
 type stmt =
     Block of string*stmts                	(* {.....} *)
