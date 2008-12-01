@@ -297,6 +297,8 @@ let parseDB (prog) =
   in
   let parseRF = function
       Ast.Rule (name, Ast.Params(parms), statement) -> 
+	Printf.printf "Internal error"; exit 1
+    | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
 	Rule ({ name = name; params = parms}, (parseStatement statement))
     | Ast.Fact (name, Ast.Params(parms))            -> 
 	Fact ({ name = name; params = parms}) 
