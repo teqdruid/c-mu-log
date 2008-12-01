@@ -34,4 +34,3 @@ main() {
 		The corner case '=' doesnt work in >=
 		the bar(15) gives 2 solutions as it comes within the overlapping range(10-18)*/
 
-*/
