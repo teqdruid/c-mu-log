@@ -11,6 +11,12 @@ let record=
    let f index='o' in
    Array.init 225 f ;;
 
+let clear_array a=
+	for x=0 to (Array.length a)-1 do
+		a.(x)<-'o'
+	done
+;;
+
 let create_wall x_start x_end y_start y_end=
 	if x_start<1 || x_end>15 then failwith "Creating Wall : x position of wall exceeds the grids"
 	else if y_start<1 || y_end>15 then failwith "Creating Wall : y position of wall exceeds the grids"
@@ -80,6 +86,7 @@ let rec loop i database=
  			(* output record array to file*)
 
  			(* clear the values in the array*)
+    clear_array record;
     loop (i+1) database
 in loop 1 db 
 ;;
