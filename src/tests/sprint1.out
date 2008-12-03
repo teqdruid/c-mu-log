@@ -1,9 +1,17 @@
 Wall: 4
-Solution
+
+ ^^^  Solution  ^^^ 
+
 Wall: 6
-Solution
+
+ ^^^  Solution  ^^^ 
+
 Wall: 'foo'
-Solution
+
+ ^^^  Solution  ^^^ 
+
 Wall: symA
-Solution
+
+ ^^^  Solution  ^^^ 
+
 No more solutions
