@@ -1,3 +1,8 @@
 foo(4,5);
-@learn("learn");
-@learn(wall(4,5);wall(4);wall(););
+@learn("$x");
+foo() {Run Per Solution: 
+@learn(wall(4,5););
+}
+{OR:
+@learn(wall(4,5);)
+}
