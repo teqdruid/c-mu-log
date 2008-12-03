@@ -40,9 +40,9 @@ let cAnd a b =
     | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2 ) -> a
     | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2 ) -> a
     | (CEqlInt(i1),    CGT(i2))        when (i1 > i2) -> a
-    | (CGT(i1),        CEqlInt(i2))    when (i2 > i1) -> a
+    | (CGT(i1),        CEqlInt(i2))    when (i2 > i1) -> b
     | (CEqlInt(i1),    CLT(i2))        when (i1 < i2) -> a
-    | (CLT(i1),        CEqlInt(i2))    when (i2 < i1) -> a
+    | (CLT(i1),        CEqlInt(i2))    when (i2 < i1) -> b
     | (CLT(i1),        CLT(i2))        -> CLT(min i1 i2)
     | (CGT(i1),        CGT(i2))        -> CLT(max i1 i2)
     | (CGT(i1),        CLT(i2))        when (i1 < i2) -> CRange(i1, i2)
@@ -192,8 +192,7 @@ let parseDB (prog) =
   in
   let rec parseAndBlock stmts = 
     match stmts with
-	[] -> (fun db cnst -> Solution (list_fill Any (List.length cnst),
-					fun unit -> NoSolution))
+	[] -> (fun db cnst -> Solution (cnst, fun unit -> NoSolution))
       | stmt :: tail ->
 	  let s = (parseStatement stmt) in
 	  let n = (parseAndBlock  tail) in
@@ -311,12 +310,12 @@ let parseDB (prog) =
 			   (ignore (action db cnsts))) actions;
 	      Solution(cnsts, fun () -> runPer (nxt()))
       in
-	(*print_string ("Rule in: " ^ (string_of_cnst) ^ "\n");*)
+	(*print_string ("Rule in: " ^ (String.concat ", " (List.map string_of_cnst cnst)) ^ "\n");*)
 	runPer (stmt db (cnst_extend_to cnst slots))
   in
   let parseRF = function
       Ast.Rule (name, Ast.Params(parms), statement) -> 
-	Printf.printf "Internal error"; exit 1
+	failwith "Internal error"
     | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
 	Rule ({ name = name; params = parms}, 
 	      (parseRule (parseStatement statement) numVars 
