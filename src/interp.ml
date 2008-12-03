@@ -64,6 +64,13 @@ let cnst_extend a b =
     else (a,b)
 ;;
 
+let cnst_extend_to a l =
+  let delta = l - (List.length a) in
+    if delta > 0
+    then List.append a (list_fill Any delta)
+    else a
+;;
+
 let cnstAndAll aC bC =
   let (aC, bC) = cnst_extend aC bC in
     List.map2 cAnd aC bC
@@ -295,11 +302,25 @@ let parseDB (prog) =
       | _ -> (Printf.printf "Unsupported operation\n";
 	      (fun db cnst -> NoSolution))
   in
+  let parseRule stmt slots actions = 
+    fun db cnst ->
+      let rec runPer nxt = 
+	match nxt with
+	    NoSolution -> NoSolution
+	  | Solution(cnsts, nxt) -> 
+	      List.iter (fun action ->
+			   (ignore (action db cnsts))) actions;
+	      Solution(cnsts, fun () -> runPer (nxt()))
+      in
+	runPer (stmt db (cnst_extend_to cnst slots))
+  in
   let parseRF = function
       Ast.Rule (name, Ast.Params(parms), statement) -> 
 	Printf.printf "Internal error"; exit 1
     | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
-	Rule ({ name = name; params = parms}, (parseStatement statement))
+	Rule ({ name = name; params = parms}, 
+	      (parseRule (parseStatement statement) numVars 
+		 (List.map parseStatement nseStmt)))
     | Ast.Fact (name, Ast.Params(parms))            -> 
 	Fact ({ name = name; params = parms}) 
   in
@@ -320,12 +341,4 @@ let rec dump_db db =
       [] -> ()
     | Fact(s) :: tail -> print_sig s; print_string ";\n"; dump_db tail
     | Rule(s, f) :: tail -> print_sig s; print_string " {}\n"; dump_db tail
-;;
-
-let rec iter_sols nxt =
-  match nxt with
-      NoSolution -> print_string "No more solutions\n"
-    | Solution(c,n) -> 
-	(print_string "Solution\n");
-	iter_sols (n ())
 ;;
