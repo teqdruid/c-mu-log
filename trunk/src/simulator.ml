@@ -17,6 +17,11 @@ let clear_array a=
 		a.(x)<-'o'
 	done
 ;;
+let print_array a= 
+	for x=0 to (Array.length a)-1 do
+		print_char a.(x)
+	done
+;;
 
 let print j arr =
 let file = "agent"^string_of_int(j)^".dat" in
@@ -41,7 +46,7 @@ let create_wall x_start x_end y_start y_end=
 	else if x_start>x_end || y_start>y_end then failwith "Creating Wall:wrong range!!!"
 	else for i=x_start to x_end do
 		for j=y_start to y_end do
-			record.((15-i)*15+j-1)<-'|'
+			record.((15-j)*15+i-1)<-'|'
 		done
 	     done
 ;;
@@ -75,7 +80,7 @@ let rec iter_wall nxt =
 let agent_move direction =
 	match direction with 
 		"UP"-> y_ref:=!y_ref + 1
-	       | "DOWN"-> y_ref:=!y_ref-1
+	       | "DOWN"-> y_ref:=!y_ref - 1
 	       | "LEFT"-> x_ref:=!x_ref -1
                | "RIGHT"->x_ref:= !x_ref + 1
 	       | _ ->failwith "No such a direction!"
@@ -85,14 +90,16 @@ let rec iter_move nxt =
   match nxt with
       NoSolution -> ()
     | Solution([c],n)->(match c with 
-  	CEqlSymbol(dir)->(agent_move dir;					
-		 let array_index=(15 - !x_ref)*15 + !y_ref-1 in
-		    if Array.get record array_index = '|' then
-			failwith "Hit the wall and Game over!!!"
-		    else if !x_ref < 1|| !x_ref > 15|| !y_ref < 1|| !y_ref >15 then
-			failwith "Hit the margin and Game over!!! "
+  	CEqlStr(dir)->(agent_move dir;
+			print_int !y_ref;					
+		 let array_index=(15 - !y_ref)*15 + !x_ref-1 in
+		    if !x_ref < 1|| !x_ref > 15 then
+			failwith "Hit the margin and Game over!!! "		    
+		    else if Array.get record array_index = '|' then
+			failwith "Hit the wall and Game over!!!"	
 		    else record.(array_index)<-'x')
-	| _ -> ())
+	| _ -> ());
+	iter_move (n ())
 ;;
 
 
@@ -118,7 +125,15 @@ let _ =
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let program = Parser.program Scanner.token lexbuf in
   let pDB = Interp.parseDB(program) in
-  simulation pDB
+(*  simulation pDB*)
+
+   let sGen1=query pDB{name = "wall"; params = [TVar(0); TVar(1)]} in
+    iter_wall sGen1;
+    let sGen2=query pDB{name = "move"; params = [TVar(0)]} in
+    iter_move sGen2;
+    print_array record;
+    print 1 record;
+    clear_array record;   
  
 ;;
 
