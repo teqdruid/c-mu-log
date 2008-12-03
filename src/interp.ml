@@ -113,7 +113,7 @@ let cnst_of_params params env =
   let param_to_cnst = function
       Ast.Lit(i) -> CEqlInt    (i)
     | Ast.Sym(s) -> CEqlSymbol (s)
-    | Ast.Var(v) -> Any
+    | Ast.Var(v) -> failwith "Internal error 5"
     | Ast.TVar(i) -> List.nth env i
     | Ast.Str(s) -> CEqlStr    (s) 
     | Ast.Arr(a) -> Any (* TODO: Array Matching *)
@@ -179,14 +179,12 @@ let parseDB (prog) =
 		Ast.Lit(i) -> print_int i
 	      | Ast.Str(s) -> print_string s
 	      | Ast.Sym(s) -> print_string s
-	      | Ast.TVar(i) -> print_int i (*print_string (string_of_cnst (List.nth cnst i))*)
+	      | Ast.TVar(i) -> print_string (string_of_cnst (List.nth cnst i))
 	      | _ -> ()
 	  in
-	    (ignore (List.map print_param params);
+	    (List.iter print_param params;
 	     print_string "\n";
-	     Solution([Any], fun () -> NoSolution))
-	       (* TODO: This will cause AND blocks to fail.  Any will 
-		  cause OR blocks to always succeed. Hack a fix*)
+	     NoSolution)
       else
 	(print_string "Unknown compiler directive";
 	 fun db cnst ->
@@ -194,7 +192,8 @@ let parseDB (prog) =
   in
   let rec parseAndBlock stmts = 
     match stmts with
-	[] -> (fun db cnst -> Solution (list_fill Any (List.length cnst), fun unit -> NoSolution))
+	[] -> (fun db cnst -> Solution (list_fill Any (List.length cnst),
+					fun unit -> NoSolution))
       | stmt :: tail ->
 	  let s = (parseStatement stmt) in
 	  let n = (parseAndBlock  tail) in
@@ -303,7 +302,7 @@ let parseDB (prog) =
 	      (fun db cnst -> NoSolution))
   in
   let parseRule stmt slots actions = 
-    fun db cnst ->
+    fun db cnst ->      
       let rec runPer nxt = 
 	match nxt with
 	    NoSolution -> NoSolution
@@ -312,6 +311,7 @@ let parseDB (prog) =
 			   (ignore (action db cnsts))) actions;
 	      Solution(cnsts, fun () -> runPer (nxt()))
       in
+	(*print_string ("Rule in: " ^ (string_of_cnst) ^ "\n");*)
 	runPer (stmt db (cnst_extend_to cnst slots))
   in
   let parseRF = function

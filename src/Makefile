@@ -28,7 +28,7 @@ parser.ml parser.mli : parser.mly
 
 srclc:
 	sloccount printer.ml parser.mly scanner.mll interp.ml \
-	print.ml trans.ml Makefile *.py
+	print.ml trans.ml Makefile *.py simulator.ml culog.ml pwall.ml
 
 tstlc:
 	wc -l tests/*.ul
