@@ -5,6 +5,7 @@ let x_position=1;;
 let y_position=1;;
 let x_ref=ref x_position;;
 let y_ref=ref y_position;;
+open Printf;;
 (*a global array to restore information of wall and agent *)
 (* 'o'represent empty grid,'|' represents wall and 'x'represents agent *)
 let record=
@@ -16,6 +17,23 @@ let clear_array a=
 		a.(x)<-'o'
 	done
 ;;
+
+let print j arr =
+let file = "agent"^string_of_int(j)^".dat" in
+  (* Write message to file *)
+
+ let oc = open_out file in    (* create or truncate file, return channel *)
+
+for a=0 to 14
+do
+ for j=15*(a) to 15*(a+1)-1
+   do
+   Printf.fprintf oc "%c" arr.(j)
+   done;
+ Printf.fprintf oc "\n"
+
+done;
+ close_out oc;;             (* flush and close the channel *)
 
 let create_wall x_start x_end y_start y_end=
 	if x_start<1 || x_end>15 then failwith "Creating Wall : x position of wall exceeds the grids"
@@ -77,12 +95,14 @@ let rec iter_move nxt =
 	| _ -> ())
 ;;
 
+
 let simulation db=
 let rec loop i database=
     let sGen1=query database{name = "wall"; params = [TVar(0); TVar(1)]} in
     iter_wall sGen1;
     let sGen2 = query database{name = "move"; params=[TVar(0)]} in
     iter_move sGen2;
+    print i record;
  			(* output record array to file*)
 
  			(* clear the values in the array*)
@@ -101,3 +121,5 @@ let _ =
   simulation pDB
  
 ;;
+
+(*query grid size; different part of the prgram for environment and agent*)
