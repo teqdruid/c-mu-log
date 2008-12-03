@@ -14,7 +14,7 @@ let rec iter_sols nxt =
   match nxt with
       NoSolution -> print_string "No more solutions\n"
     | Solution(c,n) -> 
-	(print_string "Solution\n");
+	(print_string "\n ^^^  Solution  ^^^ \n\n");
 	iter_sols (n ())
 ;;
 
