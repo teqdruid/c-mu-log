@@ -10,6 +10,14 @@
 
 open Interp
 
+let rec iter_sols nxt =
+  match nxt with
+      NoSolution -> print_string "No more solutions\n"
+    | Solution(c,n) -> 
+	(print_string "Solution\n");
+	iter_sols (n ())
+;;
+
 let _ = 
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let program = Parser.program Scanner.token lexbuf in

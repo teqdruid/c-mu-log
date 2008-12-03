@@ -122,6 +122,8 @@ let translate prog =
 	  List.append (filterNSE stmts) (filterNSE tail)
       | Directive(n, p) :: tail ->
 	  Directive(n,p) :: filterNSE tail
+      | DirectiveStudy(n, p) :: tail ->
+	  DirectiveStudy(n,p) :: filterNSE tail
       | head :: tail  ->
 	  filterSE tail
   in
