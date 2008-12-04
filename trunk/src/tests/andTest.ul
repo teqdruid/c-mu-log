@@ -6,6 +6,11 @@ wall($x, 5) {AND:
     $x > 2;
 }
 
+wall($x, $y) {AND:
+	 $x < 15;
+	 $y < 2;
+}
+
 main() {
     @print("(", $x, ",", $y, ")");
     wall($x, $y);
