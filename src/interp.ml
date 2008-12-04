@@ -152,7 +152,8 @@ let rec run_eval db name vars =
 		    (fun unit -> eval_loop tail))
       | Rule (signature, exec) :: tail
 	  when match_signature signature name vars ->
-	  run_gen tail (fun unit -> exec db vars)
+	  let matchedVars = cnstAndAll vars (sig_to_cnst signature.params) in
+	    run_gen tail (fun unit -> exec db matchedVars)
       | head :: tail -> eval_loop tail
   in
     (*print_string ("In: " ^ (string_of_eval name vars));*)
