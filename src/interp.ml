@@ -259,6 +259,7 @@ let parseDB (prog) =
 	  | Ast.Leq -> CGT(i + 1)
 	  | Ast.Geq -> CLT(i - 1)
 	  | Ast.Eq  -> CEqlInt(i)
+	  | _ -> failwith "Unsupported comparison operator"
       else
 	match op with
 	    Ast.Lt -> CLT(i)
@@ -266,6 +267,7 @@ let parseDB (prog) =
 	  | Ast.Leq -> CLT(i - 1)
 	  | Ast.Geq -> CGT(i + 1)
 	  | Ast.Eq  -> CEqlInt(i)
+	  | _ -> failwith "Unsupported comparison operator"
     in
     let doAnd myCnsts db cnst =
       let sol = cnstAndAll myCnsts cnst in
@@ -280,8 +282,7 @@ let parseDB (prog) =
 	  doAnd ((list_fill Any v) @ [(compOp i true)])
       |	(Ast.RVar(v), Ast.ELit(i)) -> 
 	  doAnd ((list_fill Any v) @ [(compOp i false)])
-      | _ -> (print_string "Unsupported comparison\n";
-	      fun db cnst -> NoSolution)
+      | _ -> failwith "Unsupported comparison\n"
   and parseStatement statement = 
     match statement with 
 	Ast.Block (redOp, Ast.Stmts(statements))
@@ -316,7 +317,7 @@ let parseDB (prog) =
 	runPer (stmt db (cnst_extend_to cnst slots))
   in
   let parseRF = function
-      Ast.Rule (name, Ast.Params(parms), statement) -> 
+      Ast.Rule (name, parms, statement) -> 
 	failwith "Internal error"
     | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
 	Rule ({ name = name; params = parms}, 
@@ -324,6 +325,8 @@ let parseDB (prog) =
 		 (List.map parseStatement nseStmt)))
     | Ast.Fact (name, Ast.Params(parms))            -> 
 	Fact ({ name = name; params = parms}) 
+    | Ast.GlobalDirective(name, params) -> failwith "Unsupported global directive encountered"
+    | _ -> failwith "Error in static analysis"
   in
   let tProg = Trans.translate(prog) in
     match tProg with
