@@ -245,6 +245,7 @@ let parseDB (prog) =
 	 match nxt with 
 	     NoSolution -> NoSolution
 	   | Solution(rCnsts, nxt) ->
+	       (* print_string (string_of_eval name rCnsts); *)
 	       let rCnsts = revMap rCnsts in
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
@@ -276,9 +277,9 @@ let parseDB (prog) =
     in
     match (e1, e2) with
 	(Ast.ELit(i), Ast.RVar(v)) -> 
-	  doAnd ((list_fill Any (v - 1)) @ [(compOp i true)])
+	  doAnd ((list_fill Any v) @ [(compOp i true)])
       |	(Ast.RVar(v), Ast.ELit(i)) -> 
-	  doAnd ((list_fill Any (v - 1)) @ [(compOp i false)])
+	  doAnd ((list_fill Any v) @ [(compOp i false)])
       | _ -> (print_string "Unsupported comparison\n";
 	      fun db cnst -> NoSolution)
   and parseStatement statement = 

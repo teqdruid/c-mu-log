@@ -125,7 +125,7 @@ let translate prog =
       | DirectiveStudy(n, p) :: tail ->
 	  DirectiveStudy(n,p) :: filterNSE tail
       | head :: tail  ->
-	  filterSE tail
+	  filterNSE tail
   in
   let rule_translate i = match i with
       Rule(name, Params(params), stmt) -> 
