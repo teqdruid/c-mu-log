@@ -19,13 +19,13 @@ bar($x) {
 
 main() {
     {OR:
-	//foo(0);
-	//foo(5);	
-	//foo(6);
+	foo(0);
+	foo(5);	
+	foo(6);
 	bar(15);
-	//foo(1);
-	//bar(25);
-	//bar(27);
+	foo(1);
+	bar(25);
+	bar(27);
     }
     bar(49);
 		

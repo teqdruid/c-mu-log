@@ -1,6 +1,11 @@
-wall(4);
-wall(6);
-
+wall(4,4);
+wall(6,3);
+move("UP");
+move("UP");
+move("UP");
+move("RIGHT");
+move("RIGHT");
+move("RIGHT");
 face("foo");
 
 face(symA);
