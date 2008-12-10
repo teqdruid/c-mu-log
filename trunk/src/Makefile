@@ -34,7 +34,7 @@ tstlc:
 	wc -l tests/*.ul
 	wc -l tests/*.out
 
-test:
+test: all
 	python test.py
 
 .PHONY : clean

@@ -256,16 +256,16 @@ let parseDB (prog) =
 	match op with
 	    Ast.Lt -> CGT(i)
 	  | Ast.Gt -> CLT(i)
-	  | Ast.Leq -> CGT(i + 1)
-	  | Ast.Geq -> CLT(i - 1)
+	  | Ast.Leq -> CGT(i - 1)
+	  | Ast.Geq -> CLT(i + 1)
 	  | Ast.Eq  -> CEqlInt(i)
 	  | _ -> failwith "Unsupported comparison operator"
       else
 	match op with
 	    Ast.Lt -> CLT(i)
 	  | Ast.Gt -> CGT(i)
-	  | Ast.Leq -> CLT(i - 1)
-	  | Ast.Geq -> CGT(i + 1)
+	  | Ast.Leq -> CLT(i + 1)
+	  | Ast.Geq -> CGT(i - 1)
 	  | Ast.Eq  -> CEqlInt(i)
 	  | _ -> failwith "Unsupported comparison operator"
     in
