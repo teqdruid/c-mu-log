@@ -4,10 +4,15 @@
 wall(12,4);
 wall(4,9);
 wall(6,8);
-
+wall($X,$Y) {AND:
+	$X>=4;
+	$X<=6;	
+	$Y<=15;
+	$Y>=10;
+	}
 
 move("UP");
 move("UP");
-
-
 move("RIGHT");
+
+
