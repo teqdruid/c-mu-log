@@ -1,9 +1,9 @@
 %{ open Ast %}
 
-%token PLUS MINUS TIMES DIVIDE ASSIGN EOF COMMENT 
+%token PLUS MINUS TIMES DIVIDE NOT ASSIGN EOF COMMENT 
 %token LBRACE RBRACE LPAREN RPAREN
 %token ARROPEN ARRCLOSE AT DOT
-%token SEMICOLON OR AND COMMA COLON QUOTE
+%token SEMICOLON OR AND COMMA COLON QUOTE QUESTION
 %token <string> ID VARIABLE STRING1 
 %token <int> DIGIT
 
@@ -58,9 +58,10 @@ param:
 | MINUS DIGIT		{ Lit(-1*$2) }
 | STRING                { Str($1) } 
 | array			{ Arr($1) }
+| QUESTION		{ Ques }
 
 STRING: 
- STRING1 	{ $1 } 
+ STRING1 		{ $1 } 
   	 
 array:
   ARROPEN param_list ARRCLOSE { Array( List.rev $2 ) }
@@ -69,7 +70,10 @@ block:
   LBRACE stmt_list RBRACE { Block("AND", Stmts( $2 ) ) } 
 | LBRACE ID COLON stmt_list RBRACE{ Block($2, Stmts( $4 )) } 
  	 	
+stmt_list_first:
+ | statement stmt_list  { $1 :: $2 } 
 	
+
 stmt_list:
   /*nothing*/   	{ [] }
  | statement stmt_list  { $1 :: $2 } 
@@ -77,8 +81,9 @@ stmt_list:
 statement:
   
 | block {$1}
-| ID LPAREN param_list RPAREN SEMICOLON                 {Eval($1, Params(List.rev $3)) }
-| VARIABLE DOT ID LPAREN stmt_list RPAREN 		{Dot1($1,$3,Stmts(List.rev $5))}
+| ID LPAREN param_list RPAREN SEMICOLON                	{Eval($1, Params(List.rev $3)) }
+| NOT ID LPAREN param_list RPAREN SEMICOLON             {NEval($2, Params(List.rev $4)) }
+| VARIABLE DOT ID LPAREN stmt_list_first RPAREN 	{Dot1($1,$3,Stmts(List.rev $5))}
 | VARIABLE DOT ID LPAREN param_list RPAREN	 	{Dot2($1,$3,Params(List.rev $5))}
 | expr EQ expr  SEMICOLON     				{Comp($1,Eq,$3)}
 | expr NEQ expr SEMICOLON				{Comp($1,Neq,$3)}
@@ -111,4 +116,5 @@ expr:
   | PLUS DIGIT          { ELit($2) } 
   | VARIABLE         	{ EVar($1) }
   | STRING           	{ EStr($1) }
-  
+
+
