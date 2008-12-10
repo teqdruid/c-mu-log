@@ -10,6 +10,7 @@ type param =
   | TVar of int
   | Str  of string 
   | Arr  of params
+  | Ques
 
 and params = 
     Params of param list
@@ -27,6 +28,7 @@ type eval = string*params
 type stmt =
     Block of string*stmts                	(* {.....} *)
   | Comp of expr*compoperator*expr		(* $5+5<$4  $a=5,$b=6; *)
+  | NEval of string*params		   	(*!wall(4,5) *)
   | Eval of eval			   	(*wall(4,5) *)
   | DirectiveStudy of string*(eval list)	(*@learn(wall(4,5);)*)
   | Directive of string*params       		(*@print("dfdsf");*)

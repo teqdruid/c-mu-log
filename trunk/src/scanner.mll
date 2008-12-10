@@ -25,6 +25,8 @@ rule token = parse
   | '['      { ARROPEN }
   | ']'      { ARRCLOSE }
   | '"'	     { QUOTE} 
+  | '?'	     { QUESTION }
+  | '!'	     { NOT}		
   | '$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as var { VARIABLE(var) }
   | ['0'-'9']+ as lxm { DIGIT(int_of_string lxm) }
   | [ 'a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' ]* as lxm { ID(lxm) }

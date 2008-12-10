@@ -37,6 +37,7 @@ let rec string_of_param = function
   | TVar(i) -> "$" ^ (string_of_int i)
   | Str(s) -> "\""^s^"\""
   | Arr(a) -> "["^string_of_params a^"]"
+  | Ques   -> "?"	 	
 
 
 and string_of_params = function
@@ -50,6 +51,7 @@ and string_of_stmt = function
   | Comp(e1, c, e2) -> (string_of_expr e1) ^ (string_of_compoperator c) 
       ^ (string_of_expr e2) ^ ";"
   | Eval(name, ps) -> name ^ "(" ^ (string_of_params ps) ^ ");"
+  | NEval(name1, ps1) -> "!" ^ name1 ^ "(" ^ (string_of_params ps1) ^ ");"	
   | DirectiveStudy(name,stmts) -> "@"^name ^ "(" ^ 
       (string_of_stmts (Stmts (List.map (fun a -> Eval(a)) stmts))) ^ ")"
   | Directive(name,params) -> "@"^name^"("^(string_of_params params)^")"
