@@ -4,5 +4,5 @@ foo() {Run Per Solution:
 @learn(wall(4,5););
 }
 {OR:
-@learn(wall(4,5);)
+
 }

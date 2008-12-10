@@ -107,9 +107,9 @@ let rec iter_move nxt =
 
 let simulation db=
   let rec loop i database=
-    let sGen1=query database{name = "wall"; params = [TVar(0); TVar(1)]} in
+    let sGen1=query database "wall" 2 in
       iter_wall sGen1;
-      let sGen2 = query database{name = "move"; params=[TVar(0)]} in
+      let sGen2 = query database "move" 1 in
 	iter_move sGen2;
 	print i record;
  	(* output record array to file*)
@@ -129,9 +129,9 @@ let _ =
   let pDB = Interp.parseDB(program) in
     (*  simulation pDB*)
 
-  let sGen1=query pDB{name = "wall"; params = [TVar(0); TVar(1)]} in
+  let sGen1=query pDB "wall" 2 in
     iter_wall sGen1;
-    let sGen2=query pDB{name = "move"; params = [TVar(0)]} in
+    let sGen2=query pDB "move" 1 in
       iter_move sGen2;
       print_array record;
       print 1 record;

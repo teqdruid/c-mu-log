@@ -22,11 +22,13 @@ type expr =
   | RVar  of int
   | EStr  of string
 
+type eval = string*params
+
 type stmt =
     Block of string*stmts                	(* {.....} *)
   | Comp of expr*compoperator*expr		(* $5+5<$4  $a=5,$b=6; *)
-  | Eval of string*params		   	(*wall(4,5) *)
-  | DirectiveStudy of string*stmts		(*@learn(wall(4,5);)*)
+  | Eval of eval			   	(*wall(4,5) *)
+  | DirectiveStudy of string*(eval list)	(*@learn(wall(4,5);)*)
   | Directive of string*params       		(*@print("dfdsf");*)
   | Dot1 of string*string*stmts              	(*$agent.@learn(wall(4,5);) *)
   | Dot2 of string*string*params          	(* env.view($X,$Y,$Obj)*)
