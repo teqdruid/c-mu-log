@@ -8,6 +8,7 @@ wall($X,$Y) {AND:
 	$X<=15;	
 	$Y<=8;
 	$Y>=2;
+	$X=aabfajds;
 	}
 wall(){}
 
@@ -26,13 +27,5 @@ main ()
 }
 
 }
-/*{	{OR:
->>>>>>> .r57
-	@print("Hello");
-	wall(12,12);
-	wall(4,8);
-	wall(10,10);
-	wall(1,1);}	
-	
-}	*/	
+
 		
