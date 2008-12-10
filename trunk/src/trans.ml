@@ -82,23 +82,31 @@ let translate prog =
       | i -> i
   in
   let rec replace_stmts_var_mapping stmts bindings = 
-    match stmts with
-	[] -> []
-      | Block(redOp, Stmts(stmts)) :: tail -> 
-	  Block(redOp, Stmts(replace_stmts_var_mapping stmts bindings)) ::
-	    (replace_stmts_var_mapping tail bindings)
-      | Comp(expr1, compOp, expr2) :: tail ->
-	  Comp(replace_expr_var_mapping expr1 bindings, compOp,
-	       replace_expr_var_mapping expr2 bindings) ::
-	    (replace_stmts_var_mapping tail bindings)
-      | Eval(name, Params(params)) :: tail ->
-	  Eval(name, Params(replace_params_var_mapping params bindings))::
-	    (replace_stmts_var_mapping tail bindings)
-      | Directive(n, Params(params)) :: tail ->
-	  Directive(n, Params(replace_params_var_mapping params bindings))::
-	    (replace_stmts_var_mapping tail bindings)
-      | i :: tail ->
-	  i :: (replace_stmts_var_mapping tail bindings)
+    let rec replaceIndv stmt = 
+      match stmt with
+	  Block(redOp, Stmts(stmts))-> 
+	    Block(redOp, Stmts(replace_stmts_var_mapping stmts bindings))
+	| Comp(expr1, compOp, expr2) ->
+	    Comp(replace_expr_var_mapping expr1 bindings, compOp,
+		 replace_expr_var_mapping expr2 bindings)
+	| Eval(name, Params(params)) ->
+	    Eval(name, Params(replace_params_var_mapping params bindings))
+	| Directive(n, Params(params)) ->
+	    Directive(n, Params(replace_params_var_mapping params bindings))
+	| DirectiveStudy(n, evList) ->
+	    let evListMapped = 
+	      List.map
+		(fun ev -> match ev with
+		     (name, Params(plist)) -> 
+		       (name,
+			Params(replace_params_var_mapping plist bindings))
+		   | _ -> ev)
+		evList
+	    in
+	      DirectiveStudy(n, evListMapped)
+	| _ -> stmt
+    in
+      List.map replaceIndv stmts
   in
   let max_index s i l =
     if i > l
@@ -111,6 +119,8 @@ let translate prog =
       | Block(redOp, Stmts(stmts)) :: tail ->
 	  Block(redOp, Stmts(filterSE stmts)) :: filterSE tail
       | Directive(n, p) :: tail ->
+	  filterSE tail
+      | DirectiveStudy(n, p) :: tail ->
 	  filterSE tail
       | head :: tail  ->
 	  head :: filterSE tail

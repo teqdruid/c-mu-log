@@ -18,13 +18,17 @@ let rec iter_sols nxt =
 	iter_sols (n ())
 ;;
 
+let myDBD db = 
+  print_string "Database dump:\n";
+  dump_db !db;
+  print_string "\n";;
+
 let _ = 
   let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
   let program = Parser.program Scanner.token lexbuf in
   let pDB = parseDB(program) in
-    (*print_string "Database dump:\n";
-    dump_db pDB;
-    print_string "\n";*)
-    let sGen = query pDB {name = "main"; params = []} in
-      iter_sols sGen
+    (* myDBD pDB; *)
+    (let sGen = query pDB "main" 0 in
+       iter_sols sGen);
+    (* myDBD pDB; *)
 ;;

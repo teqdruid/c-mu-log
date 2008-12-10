@@ -20,7 +20,7 @@ type cnst = var_cnst list;;
 
 type signature = {
   name   : string;
-  params : Ast.param list
+  params : cnst
 };;
 
 type next = 
@@ -30,7 +30,7 @@ type next =
 type rule_fact = 
     Fact of signature
   | Rule of signature * (database -> cnst -> next)
-and database = rule_fact list;;
+and database = rule_fact list ref;;
 
 let cAnd a b =
   match (a, b) with
@@ -48,6 +48,14 @@ let cAnd a b =
     | (CGT(i1),        CLT(i2))        when (i1 < i2) -> CRange(i1, i2)
     | (CLT(i2),        CGT(i1))        when (i1 < i2) -> CRange(i1, i2)
     | (_, _) -> FalseSol
+;;
+
+(* return the first n elements of list *)
+let rec list_first n list = 
+  match list with
+      [] -> []
+    | hd :: tl when n > 0 -> hd :: list_first (n - 1) tl
+    | _ -> []
 ;;
 
 let rec list_fill item number = 
@@ -77,21 +85,13 @@ let cnstAndAll aC bC =
 ;;
 
 let match_signature signature name vars =
-  let match_param param var = match (param, var) with
-      (Ast.Lit(a), CEqlInt(b))     -> a == b
-    | (Ast.Sym(a), CEqlSymbol (b)) -> (String.compare a b) == 0
-    | (Ast.Str(a), CEqlStr    (b)) -> (String.compare a b) == 0
-    | (Ast.Lit(a), CLT(b))         -> a < b
-    | (Ast.Lit(a), CGT(b))         -> a > b
-    | (Ast.Lit(a), CRange(b,c))    -> b < a && a < c
-    | (Ast.TVar(i), _)             -> true
-	(* TODO: Array matching *)
-    | (_         , Any)            -> true
-    | (_         , _  )            -> false
+  let match_params param vars =
+    let anded = cnstAndAll param vars in
+      List.for_all (fun a -> a != FalseSol) anded
   in
     (String.compare signature.name name == 0) &&
       ((List.length signature.params) == (List.length vars)) &&
-      (List.for_all (fun a -> a) (List.map2 match_param signature.params vars))
+      (match_params signature.params vars)
 ;;
 
 let string_of_cnst = function
@@ -107,6 +107,17 @@ let string_of_cnst = function
 
 let string_of_eval name vars =
   name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
+;;
+
+let remove_fact_all db pred cnsts = 
+  (* print_string ("Removing: "^ (string_of_eval pred cnsts) ^ "\n"); *)
+  List.filter
+    (fun curr ->
+       match curr with
+	   Fact(signature) when 
+	     match_signature signature pred cnsts -> false
+	 | _ -> true)
+    db
 ;;
 
 let cnst_of_params params env =
@@ -140,24 +151,23 @@ let rec run_eval db name vars =
   let rec run_gen tail nextGen =
     let sols = (nextGen ()) in
       match sols with
-	  NoSolution -> run_eval tail name vars
+	  NoSolution -> eval_loop tail
 	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen tail gen))
-  in
-  let rec eval_loop e = 
+   and eval_loop e = 
     match e with
 	[] -> NoSolution
       | Fact (signature) :: tail
 	  when match_signature signature name vars ->
-	  Solution (cnstAndAll vars (sig_to_cnst signature.params),
+	  Solution (cnstAndAll vars signature.params,
 		    (fun unit -> eval_loop tail))
       | Rule (signature, exec) :: tail
 	  when match_signature signature name vars ->
-	  let matchedVars = cnstAndAll vars (sig_to_cnst signature.params) in
+	  let matchedVars = cnstAndAll vars signature.params in
 	    run_gen tail (fun unit -> exec db matchedVars)
       | head :: tail -> eval_loop tail
   in
     (*print_string ("In: " ^ (string_of_eval name vars));*)
-    eval_loop db
+    eval_loop !db
 ;;
 
 let rec list_replace i e list =
@@ -168,6 +178,8 @@ let rec list_replace i e list =
 	then e :: tl
 	else hd :: (list_replace (i - 1) e tl)
 ;;
+
+let rec range i j = if i >= j then [] else i :: (range (i+1) j)
 
 let parseDB (prog) = 
   let parseCompilerDirective name params =
@@ -209,7 +221,9 @@ let parseDB (prog) =
 		  | (Solution(sCnst, aN), NoSolution) -> run_merge (aN ()) (n db cnst)
 		  | (NoSolution, _) -> NoSolution
 	      in
-		run_merge (s db cnst) (n db cnst)
+	      let sN = (s db cnst) in
+	      let nN = (n db cnst) in
+		run_merge sN nN
   and parseOrBlock stmts = 
     match stmts with
 	[] -> (fun db cnst -> NoSolution)
@@ -227,7 +241,7 @@ let parseDB (prog) =
   and parseEval name params =
     fun db cnst -> 
        let cnsts = cnst_of_params params cnst in
-       let revMap rCnsts = 	 
+       (*let revMap rCnsts = 	 
 	 let revMapIndv cnsts param cnst = 
 	   match param with 
 	       Ast.TVar(i) -> 
@@ -239,14 +253,31 @@ let parseDB (prog) =
 		   else list_replace i cnst cnsts
 	     | _       -> cnsts
 	 in
-	   List.fold_left2 revMapIndv [] params rCnsts in
+	   List.fold_left2 revMapIndv [] params rCnsts in*)
+       let revMap rCnsts = 
+	 List.map2
+	   (fun c idx ->
+	      let intoMe = List.fold_left2
+		(fun a prm pIdx -> 
+		   match prm with
+		       Ast.TVar(i) when i == idx -> (List.nth rCnsts pIdx) :: a
+		     | _ -> a)
+		[]
+		params
+		(range 0 (List.length params))
+	      in
+		List.fold_left cAnd c intoMe)
+	   cnst
+	   (range 0 (List.length cnst))
+       in
        let nxt = run_eval db name cnsts in
        let rec doNxt nxt =
 	 match nxt with 
 	     NoSolution -> NoSolution
 	   | Solution(rCnsts, nxt) ->
 	       (* print_string (string_of_eval name rCnsts); *)
-	       let rCnsts = revMap rCnsts in
+	       let rCnsts = revMap (list_first (List.length params) rCnsts) in
+		 (* print_string (string_of_eval name rCnsts); *)
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
@@ -282,7 +313,34 @@ let parseDB (prog) =
 	  doAnd ((list_fill Any v) @ [(compOp i true)])
       |	(Ast.RVar(v), Ast.ELit(i)) -> 
 	  doAnd ((list_fill Any v) @ [(compOp i false)])
+      |	(Ast.RVar(v), Ast.EStr(s)) -> 
+	  doAnd ((list_fill Any v) @ [CEqlStr(s)])
       | _ -> failwith "Unsupported comparison\n"
+  and parseLearnForget name statements =
+    let remove_facts db cnsts =
+      let remove_fact (name,params) =
+	match params with
+	    Ast.Params(plist) -> 
+	      db := remove_fact_all !db name (cnst_of_params plist cnsts)
+	  | Ast.Array (plist) -> failwith "Internal error 9"
+      in
+	List.iter remove_fact statements
+    in
+    let add_facts db cnsts =
+      let add_fact (name,params) =
+	match params with
+	    Ast.Params(plist) -> 
+	      db := Fact({name = name; params = (cnst_of_params plist cnsts)}) :: !db
+	  | Ast.Array (plist) -> failwith "Internal error 9"
+      in
+	List.iter add_fact statements
+    in
+    let nm = String.compare name in
+      if (nm "learn") == 0
+      then (fun db cnsts -> add_facts db cnsts; NoSolution)
+      else if (nm "forget") == 0 
+      then (fun db cnsts -> remove_facts db cnsts; NoSolution)
+      else failwith ("Invalid directive: " ^ name)
   and parseStatement statement = 
     match statement with 
 	Ast.Block (redOp, Ast.Stmts(statements))
@@ -300,41 +358,46 @@ let parseDB (prog) =
 	  parseCompilerDirective name params
       | Ast.Comp(e1, compOp, e2) ->
 	  parseCompOp compOp e1 e2
+      | Ast.DirectiveStudy(name, statements) ->
+	  parseLearnForget name statements
       | _ -> (Printf.printf "Unsupported operation\n";
 	      (fun db cnst -> NoSolution))
   in
   let parseRule stmt slots actions = 
-    fun db cnst ->      
+    fun db inCnsts ->      
       let rec runPer nxt = 
 	match nxt with
 	    NoSolution -> NoSolution
-	  | Solution(cnsts, nxt) -> 
-	      List.iter (fun action ->
-			   (ignore (action db cnsts))) actions;
-	      Solution(cnsts, fun () -> runPer (nxt()))
+	  | Solution(outCnsts, nxt) -> 
+	      (* Printf.printf "outCnsts len: %d\n" (List.length outCnsts); *)
+	      List.iter 
+		(fun action ->
+		   (ignore (action db outCnsts))) 
+		actions;
+	      Solution(outCnsts, fun () -> runPer (nxt()))
       in
-	(*print_string ("Rule in: " ^ (String.concat ", " (List.map string_of_cnst cnst)) ^ "\n");*)
-	runPer (stmt db (cnst_extend_to cnst slots))
+	(* print_string ("Num slots: " ^ (string_of_int slots) ^ "\n"); *)
+	runPer (stmt db (cnst_extend_to inCnsts slots))
   in
   let parseRF = function
       Ast.Rule (name, parms, statement) -> 
-	failwith "Internal error"
+	failwith "Internal error 13"
     | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
-	Rule ({ name = name; params = parms}, 
+	Rule ({ name = name; params = (sig_to_cnst parms)}, 
 	      (parseRule (parseStatement statement) numVars 
 		 (List.map parseStatement nseStmt)))
     | Ast.Fact (name, Ast.Params(parms))            -> 
-	Fact ({ name = name; params = parms}) 
+	Fact ({ name = name; params = (sig_to_cnst parms)}) 
     | Ast.GlobalDirective(name, params) -> failwith "Unsupported global directive encountered"
     | _ -> failwith "Error in static analysis"
   in
   let tProg = Trans.translate(prog) in
     match tProg with
-	Ast.Program (ruleFacts) -> List.map parseRF ruleFacts
+	Ast.Program (ruleFacts) -> ref (List.map parseRF ruleFacts)
 ;;
 
-let query db s =
-  run_eval db s.name (sig_to_cnst s.params)
+let query db pred numVars =
+  run_eval db pred (list_fill Any numVars)
 ;;
 
 let rec dump_db db = 

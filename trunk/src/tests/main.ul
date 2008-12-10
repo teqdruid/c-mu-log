@@ -3,11 +3,11 @@
 wall(3,4);
 wall(4,8);
 wall(6,8);
-wall($X,$Y) {OR:
+wall($X,$Y) {AND:
 	$X>=10;
 	$X<=15;	
-	$Y<=15;
-	$Y>=10;
+	$Y<=8;
+	$Y>=2;
 	}
 wall(){}
 
@@ -16,12 +16,16 @@ move("UP");
 move("UP");
 
 main ()
-{	{OR:
+     {OR:
+	@print("Wall: ", $x, ",", $y);
+	wall($x, $y);
+}
+/*{	{OR:
 	@print("Hello");
 	wall(12,12);
 	wall(4,8);
 	wall(10,10);
 	wall(1,1);}	
 	
-}		
+}	*/	
 		

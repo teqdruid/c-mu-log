@@ -87,7 +87,7 @@ statement:
 | expr GEQ expr	SEMICOLON				{Comp($1,Geq,$3)}
 | expr LEQ expr	SEMICOLON				{Comp($1,Leq,$3)}
 | AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params(List.rev $4))} 
-| AT ID LPAREN direc_list_first RPAREN SEMICOLON	{DirectiveStudy($2,Stmts(List.rev $4))}
+| AT ID LPAREN direc_list_first RPAREN SEMICOLON	{DirectiveStudy($2,(List.rev $4))}
 
 
 direc_list_first:
@@ -98,7 +98,7 @@ direc_list:
 | directive SEMICOLON direc_list		   	{ $1 :: $3 }
 
 directive:
- ID LPAREN param_list RPAREN 				{Eval($1,Params(List.rev $3))}
+ ID LPAREN param_list RPAREN 				{($1,Params(List.rev $3))}
  	
 
 expr:
@@ -110,5 +110,5 @@ expr:
   | MINUS DIGIT         { ELit(-1*$2) } 
   | PLUS DIGIT          { ELit($2) } 
   | VARIABLE         	{ EVar($1) }
-  | STRING           	{ EStr($1)}
+  | STRING           	{ EStr($1) }
   

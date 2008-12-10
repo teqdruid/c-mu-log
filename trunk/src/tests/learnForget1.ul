@@ -1,0 +1,24 @@
+stack("s1");
+stack("s2");
+stack("s3");
+
+f() {
+    @print("Removing: ", $s);
+    @forget( stack($s); );
+
+    $s == "s1";
+}
+
+l() {
+    @print("Learning: ", $s);
+    @learn( stack($s); );
+
+    $s == 6;
+}
+
+main() {OR:
+    @print($s);
+    f();
+    l();
+    stack($s);
+}      
