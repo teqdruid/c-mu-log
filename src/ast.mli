@@ -22,6 +22,7 @@ type expr =
   | EVar  of string
   | RVar  of int
   | EStr  of string
+  | EId   of string
 
 type eval = string*params
 

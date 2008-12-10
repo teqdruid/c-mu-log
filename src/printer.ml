@@ -29,6 +29,7 @@ let rec string_of_expr = function
   | EVar(s) -> s
   | RVar(i) -> "$" ^ (string_of_int i)
   | EStr(s) -> s
+  | EId(s)  -> s
 
 let rec string_of_param = function
     Lit(i) -> string_of_int i

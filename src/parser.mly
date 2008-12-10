@@ -116,5 +116,5 @@ expr:
   | PLUS DIGIT          { ELit($2) } 
   | VARIABLE         	{ EVar($1) }
   | STRING           	{ EStr($1) }
-
+  | ID			{ EId($1) } 
 
