@@ -1,0 +1,13 @@
+/*this is test of simulator, it output the walls and trace of agent into agent1.dat*/
+
+
+wall(12,4);
+wall(4,9);
+wall(6,8);
+
+
+move("UP");
+move("UP");
+
+
+move("RIGHT");
