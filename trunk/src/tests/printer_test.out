@@ -1,0 +1,57 @@
+size(15,15);
+@attach("geometry.ul");
+wall(5,5);
+wall($X,$Y) {AND:
+$X>0;
+$X<=5;
+$Y=10;
+}
+wall(1,3) {OR:
+object(1,2,agent1);
+object(1,4,agent1);
+}
+wall(2,3) {AND:
+{OR:
+object(2,2,agent1);
+object(2,4,agent1);
+}
+@learn(wall(2,3);)
+}
+object(3,3,switchObject) {AND:
+object(3,3,agent1);
+@forget(wall(2,3);)
+}
+object($x,$y,wallObject) {AND:
+wall($x,$y);
+}
+repr(wallObject,"pix/wall.png");
+repr(switchObject,"pix/switch.png");
+repr(goalObject,"pix/goal.png");
+finish(SuccessAgent1) {AND:
+object(15,15,agent1);
+}
+finish(SuccessAgent2) {AND:
+object(13,15,agent2);
+}
+finish(Failure) {AND:
+object($x,$y,agent1);
+wall($x,$y);
+}
+repr(agent1,"agent1.sl");
+object(1,1,agent1) {AND:
+@forget(object(1,1,agent1);)
+}
+viewRange($x,$y,$viewer,$obj,$rangeMax) {AND:
+object($ViewerX,$ViewerY,$viewer);
+range($x,$y,$ViewerX,$ViewerY,$range);
+0<=$range;
+$range<=$rangeMax;
+object($x,$y,$obj);
+}
+viewAccessRule(agent1);
+view($x,$y,$viewer,$obj) {AND:
+viewRange($x,$y,$viewer,$obj,1);
+}
+repr(agent2,"agent2.ul");
+peers(agent1);
+peers(agent2);

@@ -165,7 +165,7 @@ let translate_rule mRule =
       let ev1 = has_var expr1 in
       let ev2 = has_var expr2 in
 	if ev1 && ev2
-	then failwith "Comparison unsupported"
+	then failwith "Comparisons with multiple variables are unsupported."
 	else if (not ev1) && (not ev2)
 	then failwith "Error: Comparison is constant"
 	else if ev1
