@@ -350,19 +350,22 @@ let parseDB (prog) =
   in
   let parseRule stmt slots actions = 
     fun db inCnsts ->      
-      let rec runPer nxt = 
+      let rec runPer sols nxt = 
 	match nxt with
 	    NoSolution -> NoSolution
 	  | Solution(outCnsts, nxt) -> 
-	      (* Printf.printf "outCnsts len: %d\n" (List.length outCnsts); *)
-	      List.iter 
-		(fun action ->
-		   (ignore (action db outCnsts))) 
-		actions;
-	      Solution(outCnsts, fun () -> runPer (nxt()))
+	      (* Have we already given this solution? *)
+	      if (List.mem outCnsts sols)
+	      then runPer sols (nxt())
+	      else
+		(List.iter 
+		   (fun action ->
+		      (ignore (action db outCnsts))) 
+		   actions;
+		 Solution(outCnsts, fun () -> runPer (outCnsts :: sols)(nxt())))
       in
 	(* print_string ("Num slots: " ^ (string_of_int slots) ^ "\n"); *)
-	runPer (stmt db (cnst_extend_to inCnsts slots))
+	runPer [] (stmt db (cnst_extend_to inCnsts slots))
   in
   let parseRF = function
       Tst.Rule (name, parms, numVars, statement, nseStmt) -> 
