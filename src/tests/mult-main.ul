@@ -1,9 +1,12 @@
-//main(a,b);
-//@main("asdf");
-main(dfsdf)
+main(a,b);
+
+main()
 {
-wall(4,5);
+    main(a,b);
 }
+
+main();
+
 
 
 

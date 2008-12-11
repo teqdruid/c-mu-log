@@ -3,6 +3,7 @@
 import os.path
 import os
 import glob
+import sys
 
 def run_and_compare(cmd, testOut):
     pipe = os.popen(cmd)
@@ -26,12 +27,13 @@ for test in glob.glob("tests/*.ul"):
     if not os.path.exists(testOut):
         print "Warning, no comparison output exists for ", test
         continue
-    print "Running %s..." % test
+    sys.stdout.write("Running %-25s..." % test)
+    sys.stdout.flush()
     if (test.find("/pr") != -1):
         prog = "print <"
     else:
         prog = "culog"
     if run_and_compare("./%s %s 2>&1" % (prog, test), testOut):
-        print "\tok."
+        print "\tOK"
     else:
         print "\tFAIL!"

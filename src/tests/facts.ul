@@ -5,3 +5,10 @@ foo(symA);
 bar($name);
 
 foo();
+
+main() {OR:
+    @print($a, " ", $b);
+    foo($a);
+    foo($a, $b);
+    bar($a);
+}
