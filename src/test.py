@@ -32,7 +32,10 @@ for test in glob.glob("tests/*.ul"):
     if (test.find("/pr") != -1):
         prog = "print <"
     else:
-        prog = "culog"
+        if (test.find("/sim") != -1):
+            prog = "cat "
+        else:
+            prog = "culog"
     if run_and_compare("./%s %s 2>&1" % (prog, test), testOut):
         print "\tOK"
     else:
