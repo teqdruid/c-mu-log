@@ -1,5 +1,7 @@
 /*this is test of simulator, it output the walls and trace of agent into agent1.dat*/
 
+/*   ENV CODE... PLAYER---DON'T CHANGE OR LOOK AT ME!!!*/
+goal(4,4);
 size(20,20);
 wall(12,4);
 wall(4,9);
@@ -11,8 +13,21 @@ wall($X,$Y) {AND:
 	$Y>=10;
 	}
 
-move("UP");
-move("UP");
-move("RIGHT");
+
+/* PLAYER CODE    */
+
+imove("UP");
+imove("UP");
+imove("RIGHT");
+imove("RIGHT");
+imove("RIGHT");
+imove("RIGHT");
+
+move($dir) {
+    @forget1( imove($dir); );
+    imove($dir);
+}
+
+move("DOWN");
 
 
