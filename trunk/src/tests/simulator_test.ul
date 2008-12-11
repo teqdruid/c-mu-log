@@ -1,6 +1,6 @@
 /*this is test of simulator, it output the walls and trace of agent into agent1.dat*/
 
-
+size(20,20);
 wall(12,4);
 wall(4,9);
 wall(6,8);
