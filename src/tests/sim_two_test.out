@@ -1,5 +1,5 @@
-Moving: UP
-Moving: RIGHT
+x: Moving UP
+y: Moving RIGHT
 
 ==== Turn 1 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -23,8 +23,8 @@ Moving: RIGHT
 x . . . . . . . . . . . . . . . . . . . 
 . y . . . . . . . . . . . . . . . . . . 
 
-Moving: UP
-Moving: RIGHT
+x: Moving UP
+y: Moving RIGHT
 
 ==== Turn 2 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -48,8 +48,8 @@ x . . . . . . . . . . . . . . . . . . .
 . . . . . . . . . . . . . . . . . . . . 
 . . y . . . . . . . . . . . . . . . . . 
 
-Moving: RIGHT
-Moving: LEFT
+x: Moving RIGHT
+y: Moving LEFT
 
 ==== Turn 3 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -73,8 +73,8 @@ Moving: LEFT
 . . . . . . . . . . . . . . . . . . . . 
 . y . . . . . . . . . . . . . . . . . . 
 
-Moving: RIGHT
-Moving: UP
+x: Moving RIGHT
+y: Moving UP
 
 ==== Turn 4 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -98,8 +98,8 @@ Moving: UP
 . y . . . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . . . . . 
 
-Moving: RIGHT
-Moving: RIGHT
+x: Moving RIGHT
+y: Moving RIGHT
 
 ==== Turn 5 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -123,8 +123,8 @@ Moving: RIGHT
 . . y . . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . . . . . 
 
-Moving: RIGHT
-Moving: UP
+x: Moving RIGHT
+y: Moving UP
 
 ==== Turn 6 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -148,8 +148,8 @@ Moving: UP
 . . . . . . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . . . . . 
 
-Moving: DOWN
-Moving: UP
+x: Moving DOWN
+y: Moving UP
 
 ==== Turn 7 ====
 . . . . . . . . . . . . . . . . . . . . 
@@ -173,8 +173,8 @@ Moving: UP
 . . . . x . . . . . . . . . . . . . . . 
 . . . . . . . . . . . . . . . . . . . . 
 
-Moving: DOWN
-Moving: RIGHT
+x: Moving DOWN
+y: Moving RIGHT
 
-Simulation over: Win!!!Successfully reach the goal!
+Simulation over: y wins!!!Successfully reach the goal at position (4,4)
 
