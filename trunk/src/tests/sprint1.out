@@ -1,16 +1,24 @@
-Wall: 4
+Wall: 4, 4
 
  ^^^  Solution  ^^^ 
 
-Wall: 6
+Wall: 6, 3
 
  ^^^  Solution  ^^^ 
 
-Wall: 'foo'
+Wall: Any, 'foo'
 
  ^^^  Solution  ^^^ 
 
-Wall: symA
+Wall: Any, symA
+
+ ^^^  Solution  ^^^ 
+
+Wall: Any, 'UP'
+
+ ^^^  Solution  ^^^ 
+
+Wall: Any, 'RIGHT'
 
  ^^^  Solution  ^^^ 
 

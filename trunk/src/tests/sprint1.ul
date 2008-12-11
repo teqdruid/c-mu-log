@@ -11,7 +11,8 @@ face("foo");
 face(symA);
 
 main() {OR:
-       @print("Wall: ", $y);
-       wall($y);
-       face($y);
+    @print("Wall: ", $x, ", ", $y);
+    wall($x, $y);
+    face($y);
+    move($y);
 }
