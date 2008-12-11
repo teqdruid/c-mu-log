@@ -14,20 +14,4 @@ wall($X,$Y) {AND:
 	}
 
 
-/* PLAYER CODE    */
-
-imove("UP");
-imove("UP");
-imove("RIGHT");
-imove("RIGHT");
-imove("RIGHT");
-imove("RIGHT");
-
-move($dir) {
-    @forget1( imove($dir); );
-    imove($dir);
-}
-
-move("DOWN");
-
-
+agent("tests/agents/agent1.ul");

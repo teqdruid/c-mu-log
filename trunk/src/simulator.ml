@@ -180,29 +180,47 @@ let rec iter_move nxt =
 ;;
 
 
-let simulation db =
-  let rec loop i database=
-    let sGen_size=query database "size" 2 in
+let simulation envDB agentDB =
+  let rec loop i=
+    let sGen_size=query envDB "size" 2 in
       set_size sGen_size;
-      let sGen_goal=query database "goal" 2 in
+      let sGen_goal=query envDB "goal" 2 in
 	set_goal sGen_goal;
 	clear_array record;
-	let sGen_wall=query database "wall" 2 in
+	let sGen_wall=query envDB "wall" 2 in
 	  iter_wall sGen_wall;
-	  let sGen_move=query database "move" 1 in
+	  let sGen_move=query agentDB "move" 1 in
 	    iter_move sGen_move;
 	    (* print_file i record; *)
 	    print_stdout i record;
 	    if i>100 then sim_exit "You lose!Can not reach the goal with in 100 steps" 	
-	    else loop (i+1) database
-  in loop 1 db 
+	    else loop (i+1)
+  in loop 1
 ;;
 
-let _ = 
-  let lexbuf1 = Lexing.from_channel (open_in Sys.argv.(1)) in
+let load_db db_loc =
+  let lexbuf1 = Lexing.from_channel (open_in db_loc) in
   let program = Parser.program Scanner.token lexbuf1 in
-  let pDB = Interp.parseDB(program) in
-    simulation pDB
+    Interp.parseDB(program)
+;;
+
+let get_agent_loc db = 
+  let res = query db "agent" 1 in
+    match res with 
+	NoSolution -> ""
+      | Solution([CEqlStr(s)], _) -> s
+      | _ -> failwith "Failed to load agent"
+;;
+	  
+
+let _ = 
+  let envDB = load_db Sys.argv.(1) in
+  let agent_loc = get_agent_loc envDB in
+    if 0 == (String.compare "" agent_loc)
+    then simulation envDB envDB
+    else
+      let agentDB = load_db agent_loc in
+	simulation envDB agentDB
 ;;
 
 (*query grid size; different part of the prgram for environment and agent*)
