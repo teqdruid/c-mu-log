@@ -7,7 +7,6 @@ type param =
     Lit  of int
   | Sym  of string
   | Var  of string
-  | TVar of int
   | Str  of string 
   | Arr  of params
   | Ques
@@ -20,7 +19,6 @@ type expr =
     Binop of expr*operator*expr   (* 0>$X>=5  $X==$Y 5!=4*)
   | ELit  of int
   | EVar  of string
-  | RVar  of int
   | EStr  of string
   | EId   of string
 
@@ -36,12 +34,11 @@ type stmt =
   | Dot1 of string*string*stmts              	(*$agent.@learn(wall(4,5);) *)
   | Dot2 of string*string*params          	(* env.view($X,$Y,$Obj)*)
 
-and stmts=Stmts of stmt list  (* statment1;statment2;statement3; *) 
+and stmts=Stmts of stmt list  (* statment1;statment2;statement3; *)
 
 
 type ruleFact = 
     Rule of string * params * stmt
-  | TRule of string * params * int * stmt * stmt list
   | Fact of string * params
   | GlobalDirective of string*params (*@attach("dfsfsa")*) (*@print("ddafafa")*)
 

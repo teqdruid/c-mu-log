@@ -3,13 +3,13 @@
 wall(3,4);
 wall(4,8);
 wall(6,8);
-wall($X,$Y) {AND:
+/*wall($X,$Y) {AND:
 	$X>=10;
 	$X<=15;	
 	$Y<=8;
 	$Y>=2;
 	$X=aabfajds;
-	}
+	}*/
 wall(){}
 
 move("UP");
@@ -17,9 +17,10 @@ move("UP");
 move("UP");
 
 main ()
-{	wall(3,2,?);
-	!wall(4,5);	
-
+{
+    wall(3,?);
+//	!wall(4,5);	
+    
      
 {OR:
 	@print("Wall: ", $x, ",", $y);

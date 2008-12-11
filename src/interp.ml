@@ -122,26 +122,26 @@ let remove_fact_all db pred cnsts =
 
 let cnst_of_params params env =
   let param_to_cnst = function
-      Ast.Lit(i) -> CEqlInt    (i)
-    | Ast.Sym(s) -> CEqlSymbol (s)
-    | Ast.Var(v) -> failwith "Internal error 5"
-    | Ast.TVar(i) -> List.nth env i
-    | Ast.Str(s) -> CEqlStr    (s) 
-    | Ast.Arr(a) -> Any (* TODO: Array Matching *)
+      Tst.Lit(i) -> CEqlInt    (i)
+    | Tst.Sym(s) -> CEqlSymbol (s)
+    | Tst.Var(i) -> List.nth env i
+    | Tst.Str(s) -> CEqlStr    (s) 
+    | Tst.Anon   -> Any
+    | Tst.Arr(a) -> failwith "Arrays are not support yet"
   in
     (*print_string (string_of_eval "cop_env" env);
-    print_string ("cop: " ^ (Printer.string_of_params (Ast.Params(params))) ^ "\n");*)
+    print_string ("cop: " ^ (Printer.string_of_params (Tst.Params(params))) ^ "\n");*)
     List.map param_to_cnst params
 ;;
 
 let sig_to_cnst signature =
   let param_to_cnst = function
-      Ast.Lit(i) -> CEqlInt    (i)
-    | Ast.Sym(s) -> CEqlSymbol (s)
-    | Ast.Var(v) -> Any
-    | Ast.TVar(i) -> Any
-    | Ast.Str(s) -> CEqlStr    (s) 
-    | Ast.Arr(a) -> Any (* TODO: Array Matching *)
+      Tst.Lit(i) -> CEqlInt    (i)
+    | Tst.Sym(s) -> CEqlSymbol (s)
+    | Tst.Var(i) -> Any
+    | Tst.Anon   -> Any
+    | Tst.Str(s) -> CEqlStr    (s) 
+    | Tst.Arr(a) -> failwith "Arrays are not supported yet"
   in
     List.map param_to_cnst signature
 ;;
@@ -189,10 +189,10 @@ let parseDB (prog) =
 	fun db cnst ->
 	  let print_param param =
 	    match param with
-		Ast.Lit(i) -> print_int i
-	      | Ast.Str(s) -> print_string s
-	      | Ast.Sym(s) -> print_string s
-	      | Ast.TVar(i) -> print_string (string_of_cnst (List.nth cnst i))
+		Tst.Lit(i) -> print_int i
+	      | Tst.Str(s) -> print_string s
+	      | Tst.Sym(s) -> print_string s
+	      | Tst.Var(i) -> print_string (string_of_cnst (List.nth cnst i))
 	      | _ -> ()
 	  in
 	    (List.iter print_param params;
@@ -244,7 +244,7 @@ let parseDB (prog) =
        (*let revMap rCnsts = 	 
 	 let revMapIndv cnsts param cnst = 
 	   match param with 
-	       Ast.TVar(i) -> 
+	       Tst.Var(i) -> 
 		 let delta = i - (List.length cnsts) in
 		   if delta == 0
 		   then List.append cnsts [cnst]
@@ -260,7 +260,7 @@ let parseDB (prog) =
 	      let intoMe = List.fold_left2
 		(fun a prm pIdx -> 
 		   match prm with
-		       Ast.TVar(i) when i == idx -> (List.nth rCnsts pIdx) :: a
+		       Tst.Var(i) when i == idx -> (List.nth rCnsts pIdx) :: a
 		     | _ -> a)
 		[]
 		params
@@ -281,57 +281,40 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
-  and parseCompOp op e1 e2 = 
-    let compOp i flip =
-      if flip then
-	match op with
-	    Ast.Lt -> CGT(i)
-	  | Ast.Gt -> CLT(i)
-	  | Ast.Leq -> CGT(i - 1)
-	  | Ast.Geq -> CLT(i + 1)
-	  | Ast.Eq  -> CEqlInt(i)
-	  | _ -> failwith "Unsupported comparison operator"
-      else
-	match op with
-	    Ast.Lt -> CLT(i)
-	  | Ast.Gt -> CGT(i)
-	  | Ast.Leq -> CLT(i + 1)
-	  | Ast.Geq -> CGT(i - 1)
-	  | Ast.Eq  -> CEqlInt(i)
-	  | _ -> failwith "Unsupported comparison operator"
-    in
-    let doAnd myCnsts db cnst =
-      let sol = cnstAndAll myCnsts cnst in
-	(*(print_string (string_of_eval "" myCnsts));
+  and doAnd myCnsts db cnst =
+    let sol = cnstAndAll myCnsts cnst in
+      (*(print_string (string_of_eval "" myCnsts));
 	(print_string (string_of_eval "" cnst));*)
-	if List.for_all (fun a -> a != FalseSol) sol
-	then Solution(sol, fun () -> NoSolution)
-	else NoSolution
+      if List.for_all (fun a -> a != FalseSol) sol
+      then Solution(sol, fun () -> NoSolution)
+      else NoSolution
+  and parseCompOp op v e2 = 
+    let compOp i  =
+      match op with
+	  Ast.Lt -> CLT(i)
+	| Ast.Gt -> CGT(i)
+	| Ast.Leq -> CLT(i + 1)
+	| Ast.Geq -> CGT(i - 1)
+	| Ast.Eq  -> CEqlInt(i)
+	| _ -> failwith "Unsupported comparison operator"
     in
-    match (e1, e2) with
-	(Ast.ELit(i), Ast.RVar(v)) -> 
-	  doAnd ((list_fill Any v) @ [(compOp i true)])
-      |	(Ast.RVar(v), Ast.ELit(i)) -> 
-	  doAnd ((list_fill Any v) @ [(compOp i false)])
-      |	(Ast.RVar(v), Ast.EStr(s)) -> 
-	  doAnd ((list_fill Any v) @ [CEqlStr(s)])
-      | _ -> failwith "Unsupported comparison\n"
+      match e2 with
+	  Tst.ELit(i) -> 
+	    doAnd ((list_fill Any v) @ [(compOp i)])
+  and parseStrComp v s = 
+    doAnd ((list_fill Any v) @ [CEqlStr(s)])    
+  and parseSymComp v s = 
+    doAnd ((list_fill Any v) @ [CEqlSymbol(s)])
   and parseLearnForget name statements =
     let remove_facts db cnsts =
       let remove_fact (name,params) =
-	match params with
-	    Ast.Params(plist) -> 
-	      db := remove_fact_all !db name (cnst_of_params plist cnsts)
-	  | Ast.Array (plist) -> failwith "Internal error 9"
+	db := remove_fact_all !db name (cnst_of_params params cnsts)
       in
 	List.iter remove_fact statements
     in
     let add_facts db cnsts =
       let add_fact (name,params) =
-	match params with
-	    Ast.Params(plist) -> 
-	      db := Fact({name = name; params = (cnst_of_params plist cnsts)}) :: !db
-	  | Ast.Array (plist) -> failwith "Internal error 9"
+	db := Fact({name = name; params = (cnst_of_params params cnsts)}) :: !db
       in
 	List.iter add_fact statements
     in
@@ -343,25 +326,27 @@ let parseDB (prog) =
       else failwith ("Invalid directive: " ^ name)
   and parseStatement statement = 
     match statement with 
-	Ast.Block (redOp, Ast.Stmts(statements))
+	Tst.Block (redOp, statements)
 	  when 0 == (String.compare redOp "AND") ->
 	    parseAndBlock statements
-      | Ast.Block (redOp, Ast.Stmts(statements))
+      | Tst.Block (redOp, statements)
 	  when 0 == (String.compare redOp "OR") ->
 	    parseOrBlock statements
-      |	Ast.Block (redOp, Ast.Stmts(statements)) ->
+      |	Tst.Block (redOp, statements) ->
 	  (Printf.printf "Invalid reduction operator %s\n" redOp;
 	   (fun db cnst -> NoSolution))
-      | Ast.Eval (name, Ast.Params(params)) -> 
+      | Tst.Eval (name,   params) -> 
 	  parseEval name params
-      | Ast.Directive (name, Ast.Params(params)) ->
+      | Tst.Directive (name, params) ->
 	  parseCompilerDirective name params
-      | Ast.Comp(e1, compOp, e2) ->
+      | Tst.Comp(e1, compOp, e2) ->
 	  parseCompOp compOp e1 e2
-      | Ast.DirectiveStudy(name, statements) ->
+      | Tst.DirectiveStudy(name, statements) ->
 	  parseLearnForget name statements
-      | _ -> (Printf.printf "Unsupported operation\n";
-	      (fun db cnst -> NoSolution))
+      | Tst.StrComp(v, s) ->
+	  parseStrComp v s
+      | Tst.SymComp(v, s) ->
+	  parseSymComp v s
   in
   let parseRule stmt slots actions = 
     fun db inCnsts ->      
@@ -380,20 +365,15 @@ let parseDB (prog) =
 	runPer (stmt db (cnst_extend_to inCnsts slots))
   in
   let parseRF = function
-      Ast.Rule (name, parms, statement) -> 
-	failwith "Internal error 13"
-    | Ast.TRule (name, Ast.Params(parms), numVars, statement, nseStmt) -> 
+      Tst.Rule (name, parms, numVars, statement, nseStmt) -> 
 	Rule ({ name = name; params = (sig_to_cnst parms)}, 
 	      (parseRule (parseStatement statement) numVars 
 		 (List.map parseStatement nseStmt)))
-    | Ast.Fact (name, Ast.Params(parms))            -> 
+    | Tst.Fact (name, parms)            -> 
 	Fact ({ name = name; params = (sig_to_cnst parms)}) 
-    | Ast.GlobalDirective(name, params) -> failwith "Unsupported global directive encountered"
-    | _ -> failwith "Error in static analysis"
   in
   let tProg = Trans.translate(prog) in
-    match tProg with
-	Ast.Program (ruleFacts) -> ref (List.map parseRF ruleFacts)
+    ref (List.map parseRF tProg)
 ;;
 
 let query db pred numVars =
@@ -402,10 +382,18 @@ let query db pred numVars =
 
 let rec dump_db db = 
   let print_sig s =
-    print_string s.name
+    Printf.printf "%s(%s)" 
+      s.name 
+      (String.concat "," (List.map string_of_cnst s.params))
   in
-  match db with
-      [] -> ()
-    | Fact(s) :: tail -> print_sig s; print_string ";\n"; dump_db tail
-    | Rule(s, f) :: tail -> print_sig s; print_string " {}\n"; dump_db tail
+  let dump_rf rf = 
+    match rf with
+	Fact(s) ->
+	  print_sig s;
+	  print_string ";\n"
+      | Rule(s, f) ->
+	  print_sig s;
+	  print_string " {}\n"
+  in
+    List.iter dump_rf db
 ;;
