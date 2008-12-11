@@ -29,7 +29,7 @@ type next =
 
 type rule_fact = 
     Fact of signature
-  | Rule of signature * (database -> cnst -> next)
+  | Rule of signature * (database -> database -> cnst -> next)
 and database = rule_fact list ref;;
 
 let cAnd a b =
@@ -155,12 +155,15 @@ let sig_to_cnst signature =
 ;;
 
 (* TODO: Need constraints list mapping *)
-let rec run_eval db name vars =
+let rec run_eval db addDB name vars =
   let rec run_gen tail nextGen =
     let sols = (nextGen ()) in
       match sols with
 	  NoSolution -> eval_loop tail
-	| Solution (cnst, gen) -> Solution(cnst, (fun unit -> run_gen tail gen))
+	| Solution (cnst, gen) -> 
+	    Solution(
+	      (list_first (List.length vars) cnst), 
+	      (fun unit -> run_gen tail gen))
    and eval_loop e = 
     match e with
 	[] -> NoSolution
@@ -171,11 +174,11 @@ let rec run_eval db name vars =
       | Rule (signature, exec) :: tail
 	  when match_signature signature name vars ->
 	  let matchedVars = cnstAndAll vars signature.params in
-	    run_gen tail (fun unit -> exec db matchedVars)
+	    run_gen tail (fun unit -> exec db addDB matchedVars)
       | head :: tail -> eval_loop tail
   in
     (*print_string ("In: " ^ (string_of_eval name vars));*)
-    eval_loop !db
+    eval_loop (!addDB @ !db)
 ;;
 
 let rec list_replace i e list =
@@ -194,7 +197,7 @@ let parseDB (prog) =
     let nc = String.compare name in
       if (nc "print") == 0
       then
-	fun db cnst ->
+	fun db addDB cnst ->
 	  let print_param param =
 	    match param with
 		Tst.Lit(i) -> print_int i
@@ -208,16 +211,16 @@ let parseDB (prog) =
 	     NoSolution)
       else
 	(print_string "Unknown compiler directive";
-	 fun db cnst ->
+	 fun db addDB cnst ->
 	   NoSolution)
   in
   let rec parseAndBlock stmts = 
     match stmts with
-	[] -> (fun db cnst -> Solution (cnst, fun unit -> NoSolution))
+	[] -> (fun db addDB cnst -> Solution (cnst, fun unit -> NoSolution))
       | stmt :: tail ->
 	  let s = (parseStatement stmt) in
 	  let n = (parseAndBlock  tail) in
-	    fun db cnst ->
+	    fun db addDB cnst ->
 	      let rec run_merge aNext bNext =
 		match (aNext, bNext) with
 		    (Solution(aC, aN), Solution(bC, bN)) ->
@@ -226,28 +229,28 @@ let parseDB (prog) =
 			 then Solution(result, 
 				       (fun unit -> run_merge aNext (bN ())))
 			 else run_merge aNext (bN ()))
-		  | (Solution(sCnst, aN), NoSolution) -> run_merge (aN ()) (n db cnst)
+		  | (Solution(sCnst, aN), NoSolution) -> run_merge (aN ()) (n db addDB cnst)
 		  | (NoSolution, _) -> NoSolution
 	      in
-	      let sN = (s db cnst) in
-	      let nN = (n db cnst) in
+	      let sN = (s db addDB cnst) in
+	      let nN = (n db addDB cnst) in
 		run_merge sN nN
   and parseOrBlock stmts = 
     match stmts with
-	[] -> (fun db cnst -> NoSolution)
+	[] -> (fun db addDB cnst -> NoSolution)
       | stmt :: tail ->
 	  let nextStmt = (parseOrBlock tail) in
 	  let currStmt = (parseStatement stmt) in
-	    fun db cnst ->	    
+	    fun db addDB cnst ->	    
 	      let rec runOr nxt = 
 		match nxt with
-		    NoSolution -> nextStmt db cnst
+		    NoSolution -> nextStmt db addDB cnst
 		  | Solution(vars, nxt) -> Solution(vars, 
 						    (fun unit -> runOr (nxt ())))
 	      in
-		runOr (currStmt db cnst)
+		runOr (currStmt db addDB cnst)
   and parseEval name params =
-    fun db cnst -> 
+    fun db addDB cnst -> 
        let cnsts = cnst_of_params params cnst in
        (*let revMap rCnsts = 	 
 	 let revMapIndv cnsts param cnst = 
@@ -278,7 +281,7 @@ let parseDB (prog) =
 	   cnst
 	   (range 0 (List.length cnst))
        in
-       let nxt = run_eval db name cnsts in
+       let nxt = run_eval db addDB name cnsts in
        let rec doNxt nxt =
 	 match nxt with 
 	     NoSolution -> NoSolution
@@ -289,7 +292,7 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
-  and doAnd myCnsts db cnst =
+  and doAnd myCnsts db addDB cnst =
     let sol = cnstAndAll myCnsts cnst in
       (*(print_string (string_of_eval "" myCnsts));
 	(print_string (string_of_eval "" cnst));*)
@@ -314,19 +317,19 @@ let parseDB (prog) =
   and parseSymComp v s = 
     doAnd ((list_fill Any v) @ [CEqlSymbol(s)])
   and parseLearnForget name statements =
-    let remove_facts db cnsts =
+    let remove_facts db addDB cnsts =
       let remove_fact (name,params) =
 	db := remove_fact_all !db name (cnst_of_params params cnsts)
       in
 	List.iter remove_fact statements
     in
-    let remove_fact1 db cnsts =
+    let remove_fact1 db addDB cnsts =
       let remove_fact (name,params) =
 	db := remove_fact1 !db name (cnst_of_params params cnsts)
       in
 	List.iter remove_fact statements
     in
-    let add_facts db cnsts =
+    let add_facts db addDB cnsts =
       let add_fact (name,params) =
 	db := Fact({name = name; params = (cnst_of_params params cnsts)}) :: !db
       in
@@ -334,11 +337,11 @@ let parseDB (prog) =
     in
     let nm = String.compare name in
       if (nm "learn") == 0
-      then (fun db cnsts -> add_facts db cnsts; NoSolution)
+      then (fun db addDB cnsts -> add_facts db addDB cnsts; NoSolution)
       else if (nm "forget") == 0 
-      then (fun db cnsts -> remove_facts db cnsts; NoSolution)
+      then (fun db addDB cnsts -> remove_facts db addDB cnsts; NoSolution)
       else if (nm "forget1") == 0 
-      then (fun db cnsts -> remove_fact1 db cnsts; NoSolution)
+      then (fun db addDB cnsts -> remove_fact1 db addDB cnsts; NoSolution)
       else failwith ("Invalid directive: " ^ name)
   and parseStatement statement = 
     match statement with 
@@ -350,7 +353,7 @@ let parseDB (prog) =
 	    parseOrBlock statements
       |	Tst.Block (redOp, statements) ->
 	  (Printf.printf "Invalid reduction operator %s\n" redOp;
-	   (fun db cnst -> NoSolution))
+	   (fun db addDB cnst -> NoSolution))
       | Tst.Eval (name,   params) -> 
 	  parseEval name params
       | Tst.Directive (name, params) ->
@@ -365,7 +368,7 @@ let parseDB (prog) =
 	  parseSymComp v s
   in
   let parseRule stmt slots actions = 
-    fun db inCnsts ->      
+    fun db addDB inCnsts ->      
       let rec runPer sols nxt = 
 	match nxt with
 	    NoSolution -> NoSolution
@@ -376,12 +379,12 @@ let parseDB (prog) =
 	      else
 		(List.iter 
 		   (fun action ->
-		      (ignore (action db outCnsts))) 
+		      (ignore (action db addDB outCnsts))) 
 		   actions;
 		 Solution(outCnsts, fun () -> runPer (outCnsts :: sols)(nxt())))
       in
 	(* print_string ("Num slots: " ^ (string_of_int slots) ^ "\n"); *)
-	runPer [] (stmt db (cnst_extend_to inCnsts slots))
+	runPer [] (stmt db addDB (cnst_extend_to inCnsts slots))
   in
   let parseRF = function
       Tst.Rule (name, parms, numVars, statement, nseStmt) -> 
@@ -395,8 +398,8 @@ let parseDB (prog) =
     ref (List.map parseRF tProg)
 ;;
 
-let query db pred numVars =
-  run_eval db pred (list_fill Any numVars)
+let query db addDB pred numVars =
+  run_eval db addDB pred (list_fill Any numVars)
 ;;
 
 let rec dump_db db = 

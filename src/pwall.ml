@@ -33,6 +33,6 @@ let _ =
     (*print_string "Database dump:\n";
     dump_db pDB;
     print_string "\n";*)
-    let sGen = query pDB "wall" 2 in
+    let sGen = query pDB (ref []) "wall" 2 in
       iter_sols sGen
 ;;

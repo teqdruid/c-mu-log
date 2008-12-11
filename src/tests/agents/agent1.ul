@@ -12,3 +12,7 @@ move($dir) {
 
 move("DOWN");
 
+main() {
+    @print($d);
+    move($d);
+}

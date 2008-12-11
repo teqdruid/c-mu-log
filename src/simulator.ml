@@ -175,29 +175,33 @@ let do_agent_move a =
     else record.(array_index)<- a.sym
 ;;
 
-let rec iter_move agent nxt =
+let iter_move agent nxt =
   match nxt with
-      Solution([CEqlStr(dir)], _ ) ->
+      NoSolution -> failwith "No Solution"
+    | Solution([CEqlStr(dir)], _ ) ->
 	let new_agent = agent_move agent dir in
 	  ignore (do_agent_move new_agent);
 	  new_agent
-    | _ -> agent
+    | _ -> failwith "Invalid (or no) move"
 ;;
 
+let my_loc_db agent = 
+  ref [Interp.Fact({name = "loc"; params = [CEqlInt(agent.x);CEqlInt(agent.y)]})]
+;;
 
 let simulation envDB agents =
   let rec loop i agents =
-    let sGen_size=query envDB "size" 2 in
+    let sGen_size=query envDB (ref []) "size" 2 in
       set_size sGen_size;
-      let sGen_goal=query envDB "goal" 2 in
+      let sGen_goal=query envDB (ref []) "goal" 2 in
 	set_goal sGen_goal;
 	clear_array record;
-	let sGen_wall=query envDB "wall" 2 in
+	let sGen_wall=query envDB (ref []) "wall" 2 in
 	  iter_wall sGen_wall;
 	  let new_agents =
 	    List.map
 	      (fun agent ->
-		 let sGen_move = query agent.db "move" 1 in
+		 let sGen_move = query agent.db (my_loc_db agent) "move" 1 in
 		   iter_move agent sGen_move)
 	      agents
 	  in
@@ -229,7 +233,7 @@ let get_agent_locs db =
       | Solution([CEqlStr(c); CEqlStr(s)], nxt) -> (c,s) :: (gal_int (nxt()))
       | _ -> failwith "Failed to load agent"
   in
-    gal_int (query db "agent" 2)
+    gal_int (query db (ref []) "agent" 2)
 ;;
 	  
 

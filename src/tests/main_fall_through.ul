@@ -1,0 +1,8 @@
+main() {
+    @print("ERROR");
+    noexist($y);
+}
+
+main() {
+    @print("Success");
+}
