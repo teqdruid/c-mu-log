@@ -8,5 +8,5 @@
 
 let lexbuf = Lexing.from_channel stdin in
 let program = Parser.program Scanner.token lexbuf in
-let listing = Printer.string_of_program (Trans.translate program) in  
+let listing = Printer.string_of_program program in  
   print_string listing;;
