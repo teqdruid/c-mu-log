@@ -1,1 +1,196 @@
-This is a DUMMY!
+Moving: UP
+
+==== Turn 1 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+x o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: UP
+
+==== Turn 2 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+x o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: RIGHT
+
+==== Turn 3 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o x o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: RIGHT
+
+==== Turn 4 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o x o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: RIGHT
+
+==== Turn 5 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o o x o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: RIGHT
+
+==== Turn 6 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o o o x o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: DOWN
+
+==== Turn 7 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o x o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+
+Moving: DOWN
+
+==== Turn 8 ====
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | | | o o o o o o o o o o o o o o 
+o o o | o o o o o o o o o o o o o o o o 
+o o o o o | o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o # o o o o o o o | o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o o o o o o o o o o o o o o o o o 
+o o o o x o o o o o o o o o o o o o o o 
+
+Moving: DOWN
+
+Simulation over: Hit the x margin and Game over!!! 
+
