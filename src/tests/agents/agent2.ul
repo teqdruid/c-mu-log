@@ -1,0 +1,16 @@
+imove("RIGHT");
+imove("RIGHT");
+imove("LEFT");
+imove("UP");
+imove("RIGHT");
+imove("UP");
+imove("UP");
+imove("RIGHT");
+
+move($dir) {
+    @forget1( imove($dir); );
+    imove($dir);
+}
+
+move("DOWN");
+
