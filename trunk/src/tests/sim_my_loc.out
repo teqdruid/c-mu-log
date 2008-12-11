@@ -1,5 +1,5 @@
 My location: 1,1
-Moving: UP
+x: Moving UP
 
 ==== Turn 1 ====
 . . . . . . . . . . 
@@ -14,7 +14,7 @@ x . . . . . . . . .
 . . . . . . . . . . 
 
 My location: 1,2
-Moving: UP
+x: Moving UP
 
 ==== Turn 2 ====
 . . . . . . . . . . 
@@ -29,7 +29,7 @@ x . . . . . . . . .
 . . . . . . . . . . 
 
 My location: 1,3
-Moving: UP
+x: Moving UP
 
 ==== Turn 3 ====
 . . . . . . . . . . 
@@ -44,7 +44,7 @@ x . . . . . . . . .
 . . . . . . . . . . 
 
 My location: 1,4
-Moving: UP
+x: Moving UP
 
 ==== Turn 4 ====
 . . . . . . . . . . 
@@ -59,7 +59,7 @@ x . . . . . . . . .
 . . . . . . . . . . 
 
 My location: 1,5
-Moving: UP
+x: Moving UP
 
 ==== Turn 5 ====
 . . . . . . . . . . 
@@ -73,7 +73,7 @@ x . . . . # . . . .
 . . . . . . . . . . 
 . . . . . . . . . . 
 
-Moving: RIGHT
+x: Moving RIGHT
 
 ==== Turn 6 ====
 . . . . . . . . . . 
@@ -87,7 +87,7 @@ Moving: RIGHT
 . . . . . . . . . . 
 . . . . . . . . . . 
 
-Moving: RIGHT
+x: Moving RIGHT
 
 ==== Turn 7 ====
 . . . . . . . . . . 
@@ -101,7 +101,7 @@ Moving: RIGHT
 . . . . . . . . . . 
 . . . . . . . . . . 
 
-Moving: RIGHT
+x: Moving RIGHT
 
 ==== Turn 8 ====
 . . . . . . . . . . 
@@ -115,7 +115,7 @@ Moving: RIGHT
 . . . . . . . . . . 
 . . . . . . . . . . 
 
-Moving: RIGHT
+x: Moving RIGHT
 
 ==== Turn 9 ====
 . . . . . . . . . . 
@@ -129,7 +129,7 @@ Moving: RIGHT
 . . . . . . . . . . 
 . . . . . . . . . . 
 
-Moving: RIGHT
+x: Moving RIGHT
 
-Simulation over: Win!!!Successfully reach the goal!
+Simulation over: x wins!!!Successfully reach the goal at position (6,6)
 
