@@ -5,8 +5,8 @@ open Ast
 let grid_size_ref=ref 1;;
 let grid_x_size_ref=ref 1;;
 let grid_y_size_ref=ref 1;;
-let goal_x_ref=ref 3;;
-let goal_y_ref=ref 3;; (* define a goal*)
+let goal_x_ref=ref 1;;
+let goal_y_ref=ref 1;; (* define a goal*)
 let x_position=1;;
 let y_position=1;;
 let x_ref=ref x_position;;
@@ -28,10 +28,36 @@ let clear_array a=
   done
 ;;
 
-let print_array a= 
-  for x=0 to (Array.length a)-1 do
-    print_char a.(x)
-  done
+let rec set_size nxt=
+  match nxt with
+       NoSolution-> ()
+     | Solution(c,n)->
+         (match c with
+              [CEqlInt(x);CEqlInt(y)]-> if x<1||x>100 then failwith "the length of grid is illegal!!!"
+                                         else if y<1||y>100 then failwith "the width of grid is not illegal!!! "
+                                         else
+                                           begin
+                                             grid_x_size_ref:=x;
+                                             grid_y_size_ref:=y;
+                                             grid_size_ref:=x*y
+                                            end
+                                        (* print_int x;print_char '|';print_int y*)
+             |_-> ())
+;;
+
+let rec set_goal nxt=
+  match nxt with
+       NoSolution-> ()
+     | Solution(c,n)->
+         (match c with
+              [CEqlInt(x);CEqlInt(y)]-> if x<1||x> !grid_x_size_ref then failwith "illegal goal x position"
+                                        else if y<1||y> !grid_x_size_ref then failwith "illegal goal y position"
+                                        else
+                                          begin
+                                            goal_x_ref:=x;
+                                            goal_y_ref:=y;
+                                          end
+             |_->())
 ;;
 
 let print_file j arr =
@@ -139,43 +165,27 @@ let rec iter_move nxt =
      | _ -> failwith "Internal error number 9")
 ;;
 
-let rec set_size nxt=
-  match nxt with
-       NoSolution-> ()
-     | Solution(c,n)->
-         (match c with
-              [CEqlInt(x);CEqlInt(y)]-> if x<1||x>100 then failwith "the length of grid is illegal!!!"
-                                         else if y<1||y>100 then failwith "the width of grid is not illegal!!! "
-                                         else
-                                           begin
-                                             grid_x_size_ref:=x;
-                                             grid_y_size_ref:=y;
-                                             grid_size_ref:=x*y
-                                            end
-                                        (* print_int x;print_char '|';print_int y*)
-             |_-> ())
-;;
 
 let simulation db=
   let rec loop i database=
     let sGen_size=query database "size" 2 in
       set_size sGen_size;
+    let sGen_goal=query database "goal" 2 in
+      set_goal sGen_goal;
     clear_array record;
     let sGen_wall=query database "wall" 2 in
       iter_wall sGen_wall;
     let sGen_move=query database "move" 1 in
       iter_move sGen_move;
-    print_file i record; 	
-    loop (i+1) database
+    print_file i record;
+    if i>100 then failwith "You lose!Can not reach the goal with in 100 steps" 	
+    else loop (i+1) database
   in loop 1 db 
 ;;
 
-
-
-
 let _ = 
-  let lexbuf = Lexing.from_channel (open_in Sys.argv.(1)) in
-  let program = Parser.program Scanner.token lexbuf in
+  let lexbuf1 = Lexing.from_channel (open_in Sys.argv.(1)) in
+  let program = Parser.program Scanner.token lexbuf1 in
   let pDB = Interp.parseDB(program) in
     simulation pDB
 (*
