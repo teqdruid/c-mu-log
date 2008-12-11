@@ -17,9 +17,9 @@ type sim_agent = {
 
 open Printf;;
 (*a global array to restore information of wall and agent *)
-(* 'o'represent empty grid,'|' represents wall and 'x'represents agent *)
+(* '.'represent empty grid,'|' represents wall *)
 let record=
-  let f index='o' in
+  let f index='.' in
     Array.init 10000 f ;;
 (* maximum grid size is 100*100 *)
 let clear_array a=
@@ -81,9 +81,7 @@ let print_grid oc arr =
 ;;
 
 let print_file j arr =
-  let file = "Agent"^string_of_int(j)^".dat" in
-    (* Write message to file *)
-
+  let file = "Agent"^string_of_int(j)^".dat" in  (* Write message to file *)
   let oc = open_out file in    (* create or truncate file, return channel *)
     (print_grid oc arr;
      close_out oc)
@@ -145,7 +143,7 @@ let rec iter_wall nxt=
 ;;
 
 let agent_move a direction =
-  Printf.printf "Moving: %s\n" direction;
+  Printf.printf "%c: Moving %s\n" a.sym direction;
   match direction with 
       "UP"   -> {x = a.x; y = a.y + 1; db = a.db; sym = a.sym}
     | "DOWN" -> {x = a.x; y = a.y - 1; db = a.db; sym = a.sym}
@@ -157,20 +155,30 @@ let agent_move a direction =
 let do_agent_move a = 
   let array_index=(!grid_y_size_ref - a.y)* !grid_x_size_ref + a.x-1 in
     if a.x < 1|| a.x > !grid_x_size_ref then (*x position is beyond range *)
-      begin                           
-	sim_exit "Hit the y margin and Game over!!! "	
+      begin 
+        let str=(Char.escaped a.sym)^" hits the y margin and Game over!!! " in                         
+	sim_exit str
       end
     else if a.y < 1|| a.y > !grid_y_size_ref then (*y position is beyond range *)
       begin
-	sim_exit "Hit the x margin and Game over!!! "	
+        let str=(Char.escaped a.sym)^" hits the x margin and Game over!!! " in
+	sim_exit str	
       end	    
     else if Array.get record array_index = '|' then
       begin
-	sim_exit "Hit the wall and Game over!!!"
+        let str=(Char.escaped a.sym)^" hits the wall and Game over!!!" in
+	sim_exit str
       end
     else if Array.get record array_index = '#' then
       begin
-        sim_exit "Win!!!Successfully reach the goal!"
+        let str=(Char.escaped a.sym)^" wins!!!Successfully reach the goal at position ("^string_of_int(!goal_x_ref)     ^","^string_of_int(!goal_y_ref)^")" 
+        in
+        sim_exit str 
+      end
+    else if (Array.get record array_index) != '.' then
+      begin
+        let str="Game over!!!Agents crash!!! at position (" ^ string_of_int(a.x)^","^ string_of_int(a.y)^")" in
+        sim_exit str
       end	
     else record.(array_index)<- a.sym
 ;;
