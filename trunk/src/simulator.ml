@@ -7,10 +7,14 @@ let grid_x_size_ref=ref 1;;
 let grid_y_size_ref=ref 1;;
 let goal_x_ref=ref 1;;
 let goal_y_ref=ref 1;; (* define a goal*)
-let x_position=1;;
-let y_position=1;;
-let x_ref=ref x_position;;
-let y_ref=ref y_position;;
+
+type sim_agent = {
+  x   : int;
+  y   : int;
+  sym : char;
+  db  : database
+}
+
 open Printf;;
 (*a global array to restore information of wall and agent *)
 (* 'o'represent empty grid,'|' represents wall and 'x'represents agent *)
@@ -24,7 +28,7 @@ let clear_array a=
       begin
 	a.(index)<-'#'
       end
-    else a.(index)<-'o'
+    else a.(index)<-'.'
   done
 ;;
 
@@ -140,48 +144,49 @@ let rec iter_wall nxt=
 	iter_wall (n ())
 ;;
 
-let agent_move direction =
+let agent_move a direction =
   Printf.printf "Moving: %s\n" direction;
   match direction with 
-      "UP"-> y_ref:=!y_ref + 1
-    | "DOWN"-> y_ref:=!y_ref - 1
-    | "LEFT"-> x_ref:=!x_ref -1
-    | "RIGHT"->x_ref:= !x_ref + 1
+      "UP"   -> {x = a.x; y = a.y + 1; db = a.db; sym = a.sym}
+    | "DOWN" -> {x = a.x; y = a.y - 1; db = a.db; sym = a.sym}
+    | "LEFT" -> {x = a.x - 1; y = a.y; db = a.db; sym = a.sym}
+    | "RIGHT"-> {x = a.x + 1; y = a.y; db = a.db; sym = a.sym}
     | _ ->failwith "No such a direction!"
 ;;
 
-let rec iter_move nxt =
-  (match nxt with
-       NoSolution-> ()
-     | Solution([c],n)->
-	 (match c with 
-  	      CEqlStr(dir)->(agent_move dir;					
-			     let array_index=(!grid_y_size_ref - !y_ref)* !grid_x_size_ref + !x_ref-1 in
-			       if !x_ref < 1|| !x_ref > !grid_x_size_ref then (*x position is beyond range *)
-                                 begin                           
-				   sim_exit "Hit the y margin and Game over!!! "	
-                                 end
-                               else if !y_ref < 1|| !y_ref > !grid_y_size_ref then (*y position is beyond range *)
-                                 begin
-				   sim_exit "Hit the x margin and Game over!!! "	
-                                 end	    
-			       else if Array.get record array_index = '|' then
-                                 begin
-				   sim_exit "Hit the wall and Game over!!!"
-                                 end
-                               else if Array.get record array_index = '#' then
-                                 begin
-                                   sim_exit "Win!!!Successfully reach the goal!"
-                                 end	
-			       else record.(array_index)<-'x')
-	    | _ -> ())
+let do_agent_move a = 
+  let array_index=(!grid_y_size_ref - a.y)* !grid_x_size_ref + a.x-1 in
+    if a.x < 1|| a.x > !grid_x_size_ref then (*x position is beyond range *)
+      begin                           
+	sim_exit "Hit the y margin and Game over!!! "	
+      end
+    else if a.y < 1|| a.y > !grid_y_size_ref then (*y position is beyond range *)
+      begin
+	sim_exit "Hit the x margin and Game over!!! "	
+      end	    
+    else if Array.get record array_index = '|' then
+      begin
+	sim_exit "Hit the wall and Game over!!!"
+      end
+    else if Array.get record array_index = '#' then
+      begin
+        sim_exit "Win!!!Successfully reach the goal!"
+      end	
+    else record.(array_index)<- a.sym
+;;
 
-     | _ -> failwith "Internal error number 9")
+let rec iter_move agent nxt =
+  match nxt with
+      Solution([CEqlStr(dir)], _ ) ->
+	let new_agent = agent_move agent dir in
+	  ignore (do_agent_move new_agent);
+	  new_agent
+    | _ -> agent
 ;;
 
 
-let simulation envDB agentDB =
-  let rec loop i=
+let simulation envDB agents =
+  let rec loop i agents =
     let sGen_size=query envDB "size" 2 in
       set_size sGen_size;
       let sGen_goal=query envDB "goal" 2 in
@@ -189,38 +194,53 @@ let simulation envDB agentDB =
 	clear_array record;
 	let sGen_wall=query envDB "wall" 2 in
 	  iter_wall sGen_wall;
-	  let sGen_move=query agentDB "move" 1 in
-	    iter_move sGen_move;
-	    (* print_file i record; *)
+	  let new_agents =
+	    List.map
+	      (fun agent ->
+		 let sGen_move = query agent.db "move" 1 in
+		   iter_move agent sGen_move)
+	      agents
+	  in
 	    print_stdout i record;
-	    if i>100 then sim_exit "You lose!Can not reach the goal with in 100 steps" 	
-	    else loop (i+1)
-  in loop 1
+	    if i>100 then sim_exit "You lose! Can not reach the goal with in 100 steps" 	
+	    else loop (i+1) new_agents
+  in loop 1 agents
+;;
+(* print_file i record; *)
+
+let load_agent db_loc =
+  match db_loc with
+      (c, s) ->
+	let lexbuf1 = Lexing.from_channel (open_in s) in
+	let program = Parser.program Scanner.token lexbuf1 in
+	  {x=1; y=1; sym = (String.get c 0); db = Interp.parseDB(program)}
 ;;
 
 let load_db db_loc =
   let lexbuf1 = Lexing.from_channel (open_in db_loc) in
   let program = Parser.program Scanner.token lexbuf1 in
-    Interp.parseDB(program)
+    {x=1; y=1; sym = 'x'; db = Interp.parseDB(program)}
 ;;
 
-let get_agent_loc db = 
-  let res = query db "agent" 1 in
+let get_agent_locs db = 
+  let rec gal_int res = 
     match res with 
-	NoSolution -> ""
-      | Solution([CEqlStr(s)], _) -> s
+	NoSolution -> []
+      | Solution([CEqlStr(c); CEqlStr(s)], nxt) -> (c,s) :: (gal_int (nxt()))
       | _ -> failwith "Failed to load agent"
+  in
+    gal_int (query db "agent" 2)
 ;;
 	  
 
 let _ = 
   let envDB = load_db Sys.argv.(1) in
-  let agent_loc = get_agent_loc envDB in
-    if 0 == (String.compare "" agent_loc)
-    then simulation envDB envDB
+  let agent_locs = get_agent_locs envDB.db in
+    if 0 == (List.length agent_locs)
+    then simulation envDB.db [envDB]
     else
-      let agentDB = load_db agent_loc in
-	simulation envDB agentDB
+      let agentDBs = List.map load_agent agent_locs in
+	simulation envDB.db agentDBs
 ;;
 
 (*query grid size; different part of the prgram for environment and agent*)
