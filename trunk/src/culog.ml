@@ -28,7 +28,7 @@ let _ =
   let program = Parser.program Scanner.token lexbuf in
   let pDB = parseDB(program) in
     (* myDBD pDB; *)
-    (let sGen = query pDB "main" 0 in
+    (let sGen = query pDB (ref []) "main" 0 in
        iter_sols sGen);
     (* myDBD pDB; *)
 ;;

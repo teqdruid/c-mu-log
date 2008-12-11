@@ -22,7 +22,9 @@ def run_and_compare(cmd, testOut):
     to.close()
     return True
 
-for test in glob.glob("tests/*.ul"):
+tests = glob.glob("tests/*.ul")
+tests.sort()
+for test in tests:
     testOut = test.replace(".ul", ".out")
     if not os.path.exists(testOut):
         print "Warning, no comparison output exists for ", test

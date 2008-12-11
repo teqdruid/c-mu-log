@@ -1,0 +1,16 @@
+size(10, 10);
+wall(?, 7);
+goal(6, 6);
+
+move("UP") {
+    @print("My location: ", $x, ",", $y);
+    loc($x, $y);
+    $y < 6;
+}
+
+move("RIGHT");
+
+main() {
+    @print($dir);
+    move($dir);
+}

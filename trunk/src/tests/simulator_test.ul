@@ -14,4 +14,4 @@ wall($X,$Y) {AND:
 	}
 
 
-agent("tests/agents/agent1.ul");
+agent("x", "tests/agents/agent1.ul");
