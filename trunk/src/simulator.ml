@@ -101,6 +101,7 @@ let rec iter_wall nxt=
 ;;
 
 let agent_move direction =
+  Printf.printf "Moving: %s\n" direction;
   match direction with 
       "UP"-> y_ref:=!y_ref + 1
     | "DOWN"-> y_ref:=!y_ref - 1
