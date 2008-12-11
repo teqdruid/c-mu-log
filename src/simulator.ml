@@ -21,43 +21,59 @@ let record=
 let clear_array a=
   for index=0 to (Array.length a)-1 do
     if index= (!grid_y_size_ref- !goal_y_ref)* !grid_x_size_ref+ !goal_x_ref-1 then
-    begin
-      a.(index)<-'#'
-    end
+      begin
+	a.(index)<-'#'
+      end
     else a.(index)<-'o'
   done
 ;;
 
+let sim_exit s = 
+  Printf.printf "\nSimulation over: %s\n\n" s;
+  exit(1)
+;;
+
 let rec set_size nxt=
   match nxt with
-       NoSolution-> ()
-     | Solution(c,n)->
-         (match c with
-              [CEqlInt(x);CEqlInt(y)]-> if x<1||x>100 then failwith "the length of grid is illegal!!!"
-                                         else if y<1||y>100 then failwith "the width of grid is not illegal!!! "
-                                         else
-                                           begin
-                                             grid_x_size_ref:=x;
-                                             grid_y_size_ref:=y;
-                                             grid_size_ref:=x*y
-                                            end
-                                        (* print_int x;print_char '|';print_int y*)
-             |_-> ())
+      NoSolution-> ()
+    | Solution(c,n)->
+        (match c with
+             [CEqlInt(x);CEqlInt(y)]-> if x<1||x>100 then failwith "the length of grid is illegal!!!"
+             else if y<1||y>100 then failwith "the width of grid is not illegal!!! "
+             else
+               begin
+                 grid_x_size_ref:=x;
+                 grid_y_size_ref:=y;
+                 grid_size_ref:=x*y
+               end
+                 (* print_int x;print_char '|';print_int y*)
+           |_-> ())
 ;;
 
 let rec set_goal nxt=
   match nxt with
-       NoSolution-> ()
-     | Solution(c,n)->
-         (match c with
-              [CEqlInt(x);CEqlInt(y)]-> if x<1||x> !grid_x_size_ref then failwith "illegal goal x position"
-                                        else if y<1||y> !grid_x_size_ref then failwith "illegal goal y position"
-                                        else
-                                          begin
-                                            goal_x_ref:=x;
-                                            goal_y_ref:=y;
-                                          end
-             |_->())
+      NoSolution-> ()
+    | Solution(c,n)->
+        (match c with
+             [CEqlInt(x);CEqlInt(y)]-> if x<1||x> !grid_x_size_ref then failwith "illegal goal x position"
+             else if y<1||y> !grid_x_size_ref then failwith "illegal goal y position"
+             else
+               begin
+                 goal_x_ref:=x;
+                 goal_y_ref:=y;
+               end
+           |_->())
+;;
+
+let print_grid oc arr = 
+  for a=0 to !grid_y_size_ref-1
+  do
+    for j= !grid_x_size_ref*(a) to !grid_x_size_ref*(a+1)-1
+    do
+      Printf.fprintf oc "%c " arr.(j)
+    done;
+    Printf.fprintf oc "\n"
+  done
 ;;
 
 let print_file j arr =
@@ -65,22 +81,20 @@ let print_file j arr =
     (* Write message to file *)
 
   let oc = open_out file in    (* create or truncate file, return channel *)
+    (print_grid oc arr;
+     close_out oc)
+;;             (* flush and close the channel *)
 
-    for a=0 to !grid_y_size_ref-1
-    do
-      for j= !grid_x_size_ref*(a) to !grid_x_size_ref*(a+1)-1
-      do
-	Printf.fprintf oc "%c " arr.(j)
-      done;
-      Printf.fprintf oc "\n"
-
-    done;
-    close_out oc;;             (* flush and close the channel *)
+let print_stdout j arr = 
+  Printf.printf "\n==== Turn %d ====\n" j;
+  print_grid stdout arr;
+  print_string "\n"
+;;
 
 let create_wall x_start x_end y_start y_end =
   if x_start<1 || x_end> !grid_x_size_ref then    
     failwith "Creating Wall : x position of wall exceeds the grids"
-  
+      
   else if y_start<1 || y_end> !grid_y_size_ref then 
     failwith "Creating Wall : y position of wall exceeds the grids"
   else if x_start>x_end || y_start>y_end then failwith "Creating Wall:wrong range!!!"
@@ -145,19 +159,19 @@ let rec iter_move nxt =
 			     let array_index=(!grid_y_size_ref - !y_ref)* !grid_x_size_ref + !x_ref-1 in
 			       if !x_ref < 1|| !x_ref > !grid_x_size_ref then (*x position is beyond range *)
                                  begin                           
-				   failwith "Hit the y margin and Game over!!! "	
+				   sim_exit "Hit the y margin and Game over!!! "	
                                  end
                                else if !y_ref < 1|| !y_ref > !grid_y_size_ref then (*y position is beyond range *)
                                  begin
-				   failwith "Hit the x margin and Game over!!! "	
+				   sim_exit "Hit the x margin and Game over!!! "	
                                  end	    
 			       else if Array.get record array_index = '|' then
                                  begin
-				   failwith "Hit the wall and Game over!!!"
+				   sim_exit "Hit the wall and Game over!!!"
                                  end
                                else if Array.get record array_index = '#' then
                                  begin
-                                   failwith "Win!!!Successfully reach the goal!"
+                                   sim_exit "Win!!!Successfully reach the goal!"
                                  end	
 			       else record.(array_index)<-'x')
 	    | _ -> ())
@@ -166,20 +180,21 @@ let rec iter_move nxt =
 ;;
 
 
-let simulation db=
+let simulation db =
   let rec loop i database=
     let sGen_size=query database "size" 2 in
       set_size sGen_size;
-    let sGen_goal=query database "goal" 2 in
-      set_goal sGen_goal;
-    clear_array record;
-    let sGen_wall=query database "wall" 2 in
-      iter_wall sGen_wall;
-    let sGen_move=query database "move" 1 in
-      iter_move sGen_move;
-    print_file i record;
-    if i>100 then failwith "You lose!Can not reach the goal with in 100 steps" 	
-    else loop (i+1) database
+      let sGen_goal=query database "goal" 2 in
+	set_goal sGen_goal;
+	clear_array record;
+	let sGen_wall=query database "wall" 2 in
+	  iter_wall sGen_wall;
+	  let sGen_move=query database "move" 1 in
+	    iter_move sGen_move;
+	    (* print_file i record; *)
+	    print_stdout i record;
+	    if i>100 then sim_exit "You lose!Can not reach the goal with in 100 steps" 	
+	    else loop (i+1) database
   in loop 1 db 
 ;;
 
@@ -188,16 +203,6 @@ let _ =
   let program = Parser.program Scanner.token lexbuf1 in
   let pDB = Interp.parseDB(program) in
     simulation pDB
-(*
-  let sGen_size=query pDB "size" 2 in
-    set_size sGen_size;
-    clear_array record;
-  let sGen_wall=query pDB "wall" 2 in
-    iter_wall sGen_wall;
-  let sGen_move=query pDB "move" 1 in
-      iter_move sGen_move;
-      print_file 1 record;  
-  *)    
 ;;
 
 (*query grid size; different part of the prgram for environment and agent*)
