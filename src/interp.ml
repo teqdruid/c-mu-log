@@ -120,6 +120,14 @@ let remove_fact_all db pred cnsts =
     db
 ;;
 
+let rec remove_fact1 db pred cnsts = 
+  (* print_string ("Removing: "^ (string_of_eval pred cnsts) ^ "\n"); *)
+  match db with 
+      [] -> []
+    | Fact(sign) :: tl when match_signature sign pred cnsts -> tl
+    | hd :: tl -> hd :: (remove_fact1 tl pred cnsts)
+;;
+
 let cnst_of_params params env =
   let param_to_cnst = function
       Tst.Lit(i) -> CEqlInt    (i)
@@ -312,6 +320,12 @@ let parseDB (prog) =
       in
 	List.iter remove_fact statements
     in
+    let remove_fact1 db cnsts =
+      let remove_fact (name,params) =
+	db := remove_fact1 !db name (cnst_of_params params cnsts)
+      in
+	List.iter remove_fact statements
+    in
     let add_facts db cnsts =
       let add_fact (name,params) =
 	db := Fact({name = name; params = (cnst_of_params params cnsts)}) :: !db
@@ -323,6 +337,8 @@ let parseDB (prog) =
       then (fun db cnsts -> add_facts db cnsts; NoSolution)
       else if (nm "forget") == 0 
       then (fun db cnsts -> remove_facts db cnsts; NoSolution)
+      else if (nm "forget1") == 0 
+      then (fun db cnsts -> remove_fact1 db cnsts; NoSolution)
       else failwith ("Invalid directive: " ^ name)
   and parseStatement statement = 
     match statement with 

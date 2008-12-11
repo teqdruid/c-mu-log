@@ -33,7 +33,7 @@ for test in glob.glob("tests/*.ul"):
         prog = "print <"
     else:
         if (test.find("/sim") != -1):
-            prog = "cat "
+            prog = "simulator"
         else:
             prog = "culog"
     if run_and_compare("./%s %s 2>&1" % (prog, test), testOut):
