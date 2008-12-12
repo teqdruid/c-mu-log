@@ -1,0 +1,7 @@
+env(yo);
+
+move($dir) {
+    @print($e, " says move ", $dir);
+    env($e);
+    $e.move($dir);
+}
