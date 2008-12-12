@@ -70,9 +70,6 @@ block:
   LBRACE stmt_list RBRACE { Block("AND", Stmts( $2 ) ) } 
 | LBRACE ID COLON stmt_list RBRACE{ Block($2, Stmts( $4 )) } 
  	 	
-stmt_list_first:
- | statement stmt_list  { $1 :: $2 } 
-	
 
 stmt_list:
   /*nothing*/   	{ [] }
@@ -83,7 +80,6 @@ statement:
 | block {$1}
 | ID LPAREN param_list RPAREN SEMICOLON                	{Eval($1, Params(List.rev $3)) }
 | NOT ID LPAREN param_list RPAREN SEMICOLON             {NEval($2, Params(List.rev $4)) }
-| VARIABLE DOT ID LPAREN stmt_list_first RPAREN 	{Dot1($1,$3,Stmts(List.rev $5))}
 | VARIABLE DOT ID LPAREN param_list RPAREN SEMICOLON 	{Dot2($1,$3,Params(List.rev $5))}
 | expr EQ expr  SEMICOLON     				{Comp($1,Eq,$3)}
 | expr NEQ expr SEMICOLON				{Comp($1,Neq,$3)}
@@ -91,8 +87,9 @@ statement:
 | expr LT expr	SEMICOLON				{Comp($1,Lt,$3)}
 | expr GEQ expr	SEMICOLON				{Comp($1,Geq,$3)}
 | expr LEQ expr	SEMICOLON				{Comp($1,Leq,$3)}
-| AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params(List.rev $4))} 
+| AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params(List.rev $4))}
 | AT ID LPAREN direc_list_first RPAREN SEMICOLON	{DirectiveStudy($2,(List.rev $4))}
+| AT VARIABLE DOT ID LPAREN direc_list_first RPAREN SEMICOLON {Dot1($2,$4,List.rev $6)}
 
 
 direc_list_first:

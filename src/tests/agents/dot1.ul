@@ -1,0 +1,6 @@
+move($dir) {
+    @$e.forget1( imove($dir); );
+    @print($e, " says move ", $dir);
+    env($e);
+    $e.move($dir);
+}
