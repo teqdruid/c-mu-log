@@ -1,8 +1,7 @@
 (*
-*  print.ml
+*  interp.ml
 *
 *  Started on  Wed Nov  5 15:13:52 2008 John Demme
-*  Last update Mon Nov 24 17:07:48 2008 John Demme
 *)
 
 type var_cnst = 
@@ -14,31 +13,34 @@ type var_cnst =
   | CLT        of int
   | CGT        of int
   | CRange     of int*int
-;;
+  | CEqlAgent  of database
 
-type cnst = var_cnst list;;
+and cnst = var_cnst list
 
-type signature = {
+and signature = {
   name   : string;
   params : cnst
-};;
+}
 
-type next = 
+and next = 
     NoSolution
-  | Solution of cnst * (unit -> next);;
+  | Solution of cnst * (unit -> next)
 
-type rule_fact = 
+and rule_fact = 
     Fact of signature
   | Rule of signature * (database -> database -> cnst -> next)
-and database = rule_fact list ref;;
+
+and database = rule_fact list ref
+;;
 
 let cAnd a b =
   match (a, b) with
       (Any, _) -> b
     | (_, Any) -> a
-    | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 == String.compare s1 s2 ) -> a
-    | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2 ) -> a
-    | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2 ) -> a
+    | (CEqlAgent(a1),  CEqlAgent(a2))  when (a1 == a2) -> a
+    | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 == String.compare s1 s2) -> a
+    | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2) -> a
+    | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2) -> a
     | (CEqlInt(i1),    CGT(i2))        when (i1 > i2) -> a
     | (CGT(i1),        CEqlInt(i2))    when (i2 > i1) -> b
     | (CEqlInt(i1),    CLT(i2))        when (i1 < i2) -> a
@@ -103,6 +105,7 @@ let string_of_cnst = function
   | CLT(i)     -> "<" ^ (string_of_int i)
   | CGT(i)     -> ">" ^ (string_of_int i)
   | CRange(a,b)-> (string_of_int a) ^ ".." ^ (string_of_int b)
+  | CEqlAgent(a) -> "Agent"
 ;;
 
 let string_of_eval name vars =
@@ -292,6 +295,17 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
+  and parseDot2 v pred params = 
+    let eval = parseEval pred params in
+      (fun db addDB cnst -> 
+	 match (List.nth cnst v) with
+	     CEqlAgent(adb) -> 
+	       Printf.printf "Dot2: %d %s\n" v pred;
+	       (eval adb (ref []) cnst)
+	   | a -> (Printf.printf 
+		     "Warning: attempted dot ('.') on a non-agent: %s\n"
+		     (string_of_cnst a);
+		   NoSolution))
   and doAnd myCnsts db addDB cnst =
     let sol = cnstAndAll myCnsts cnst in
       (*(print_string (string_of_eval "" myCnsts));
@@ -366,6 +380,8 @@ let parseDB (prog) =
 	  parseStrComp v s
       | Tst.SymComp(v, s) ->
 	  parseSymComp v s
+      | Tst.Dot2(v, pred, params) ->
+	  parseDot2 v pred params
   in
   let parseRule stmt slots actions = 
     fun db addDB inCnsts ->      

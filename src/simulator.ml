@@ -193,8 +193,14 @@ let iter_move agent nxt =
     | _ -> failwith "Invalid (or no) move"
 ;;
 
-let my_loc_db agent = 
-  ref [Interp.Fact({name = "loc"; params = [CEqlInt(agent.x);CEqlInt(agent.y)]})]
+let my_loc_db agent all env = 
+  ref ([Interp.Fact({name = "loc"; params = [CEqlInt(agent.x);CEqlInt(agent.y)]});
+	Interp.Fact({name = "env"; params = [CEqlAgent(env)]})]
+       @
+	(List.map 
+	   (fun other -> 
+	      Interp.Fact({name = "agent"; params = [CEqlAgent(other.db)]}))
+	      (List.filter (fun a -> a != agent) all)))
 ;;
 
 let simulation envDB agents =
@@ -209,7 +215,7 @@ let simulation envDB agents =
 	  let new_agents =
 	    List.map
 	      (fun agent ->
-		 let sGen_move = query agent.db (my_loc_db agent) "move" 1 in
+		 let sGen_move = query agent.db (my_loc_db agent agents envDB) "move" 1 in
 		   iter_move agent sGen_move)
 	      agents
 	  in

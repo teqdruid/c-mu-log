@@ -49,8 +49,8 @@ and string_of_stmt = function
   | DirectiveStudy(name,stmts) -> "@"^name ^ "(" ^ 
       (string_of_stmts (List.map (fun a -> Eval(a)) stmts)) ^ ")"
   | Directive(name,params) -> "@"^name^"("^(string_of_params params)^")"
-  | Dot1(str1,str2,stmts) -> str1^"."^"@"^str2^"("^(string_of_stmts stmts)^");" 
-  | Dot2(str1,str2,ps) -> str1^"."^str2^"("^(string_of_params ps)^");"
+  | Dot1(v,str2,stmts) -> "$"^(string_of_int v)^"."^"@"^str2^"("^(string_of_stmts stmts)^");" 
+  | Dot2(v,str2,ps) -> "$"^(string_of_int v)^"."^str2^"("^(string_of_params ps)^");"
 
 let string_of_ruleFact = function
   | Rule(name, params, slots, stmt, nseStmts) ->

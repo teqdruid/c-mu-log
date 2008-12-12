@@ -172,6 +172,7 @@ let translate_rule mRule =
 	then translate_comp_sv expr1 op expr2
 	else translate_comp_sv expr2 (rev_op op) expr1
     in
+      (* Translate a single statement *)
     let rec replace_stmt stmt = 
       match stmt with
 	  Block(redOp, Stmts(stmts))-> 
@@ -180,6 +181,8 @@ let translate_rule mRule =
 	    translate_comp expr1 compOp expr2
 	| Eval(name, Params(params)) ->
 	    Tst.Eval(name, translate_params params)
+	| Dot2(vname, pred, Params(params)) ->
+	    Tst.Dot2(bget vname, pred, translate_params params)
 	| Directive(n, Params(params)) ->
 	    Tst.Directive(n, translate_params params)
 	| DirectiveStudy(n, evList) ->

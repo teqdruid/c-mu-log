@@ -25,12 +25,12 @@ type stmt =
   | Comp of var*Ast.compoperator*expr		(* $5+5<$4  $a=5,$b=6; *)
   | StrComp of var*string
   | SymComp of var*string
-  | NEval of string*params		   	(*!wall(4,5) *)
+  | NEval of eval			   	(*!wall(4,5) *)
   | Eval of eval			   	(*wall(4,5) *)
   | DirectiveStudy of string*(eval list)	(*@learn(wall(4,5);)*)
   | Directive of string*params       		(*@print("dfdsf");*)
-  | Dot1 of string*string*stmts              	(*$agent.@learn(wall(4,5);) *)
-  | Dot2 of string*string*params          	(* env.view($X,$Y,$Obj)*)
+  | Dot1 of int*string*stmts              	(*$agent.@learn(wall(4,5);) *)
+  | Dot2 of int*string*params	          	(* env.view($X,$Y,$Obj)*)
 
 and stmts=stmt list  (* statment1;statment2;statement3; *) 
 
