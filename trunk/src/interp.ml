@@ -41,23 +41,101 @@ and rule_fact =
 and database = rule_fact list ref
 ;;
 
+
+let string_of_cnst = function
+    Any -> "Any"
+  | FalseSol -> "False"
+  | CEqlSymbol(s) -> s
+  | CEqlStr(s) -> "'" ^ s ^ "'"
+  | CEqlInt(i) -> string_of_int i
+  | CLT(i)     -> "<" ^ (string_of_int i)
+  | CGT(i)     -> ">" ^ (string_of_int i)
+  | CRange(a,b)-> (string_of_int a) ^ ".." ^ (string_of_int b)
+  | CEqlAgent(a) -> "Agent"
+;;
+
+let string_of_eval name vars =
+  name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
+;;
+
 let cAnd a b =
-  match (a, b) with
-      (Any, _) -> b
-    | (_, Any) -> a
-    | (CEqlAgent(a1),  CEqlAgent(a2))  when (a1 == a2) -> a
-    | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 == String.compare s1 s2) -> a
-    | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2) -> a
-    | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2) -> a
-    | (CEqlInt(i1),    CGT(i2))        when (i1 > i2) -> a
-    | (CGT(i1),        CEqlInt(i2))    when (i2 > i1) -> b
-    | (CEqlInt(i1),    CLT(i2))        when (i1 < i2) -> a
-    | (CLT(i1),        CEqlInt(i2))    when (i2 < i1) -> b
-    | (CLT(i1),        CLT(i2))        -> CLT(min i1 i2)
-    | (CGT(i1),        CGT(i2))        -> CLT(max i1 i2)
-    | (CGT(i1),        CLT(i2))        when (i1 < i2) -> CRange(i1, i2)
-    | (CLT(i2),        CGT(i1))        when (i1 < i2) -> CRange(i1, i2)
-    | (_, _) -> FalseSol
+  let rec and_int a b t = 
+    match (a, b) with
+	(Any, _) -> b
+      | (_, Any) -> a
+      | (CEqlAgent(a1),  CEqlAgent(a2))  when (a1 == a2) -> a
+      | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 == String.compare s1 s2) -> a
+      | (CEqlStr(s1),    CEqlStr(s2))    when (0 == String.compare s1 s2) -> a
+      | (CEqlInt(i1),    CEqlInt(i2))    when (i2 == i2) -> a
+      | (CEqlInt(i1),    CGT(i2))        when (i1 > i2) -> a
+      | (CEqlInt(i1),    CLT(i2))        when (i1 < i2) -> a
+      | (CLT(i1),        CLT(i2))        -> CLT(min i1 i2)
+      | (CGT(i1),        CGT(i2))        -> CLT(max i1 i2)
+      | (CGT(i1),        CLT(i2))        when (i1 < i2) -> CRange(i1, i2)
+      | (CRange(l, u),   CEqlInt(i))     when (i > l && i < u) -> b
+      | (CRange(l, u),   CGT(i))         when (i < u - 1) -> CRange((max l i), u)
+      | (CRange(l, u),   CLT(i))         when (i > l + 1) -> CRange(l, (min u i))
+      | (CRange(l1,u1),  CRange(l2,u2))  when (u1 > l2 && u2 > l1) -> CRange((max l1 l2), (min u1 u2))
+      | (_, _) when t -> and_int b a false
+      | (_, _) -> FalseSol
+  in
+    and_int a b true
+;;
+
+let range_to_int c =
+  match c with
+      CRange(l, u) when (l + 2 == u) -> CEqlInt(l+1)
+    | _ -> c
+;;
+
+let int_to_range c =
+  match c with
+      CEqlInt(i) -> CRange(i-1, i+1)
+    | _ -> c
+;;
+
+(* For each constraint, subtract the second from the first *)
+(* TODO:  There are off-by-one errors in here... Fix when you have a clearer head *)
+let cMinus b s = 
+  let cmi b s = 
+    (* Too many combinations and no play makes Johnny go something something *)
+    match (b, s) with
+	(_, Any) ->
+	  []
+      | (Any, _) ->
+	  failwith "Unsupported subtraction- need != constraint"
+      | (CEqlSymbol(s1), CEqlSymbol(s2)) when (0 != String.compare s1 s2) ->
+	  [b; s]
+      | (CEqlStr(s1), CEqlStr(s2)) when (0 != String.compare s1 s2) ->
+	  [b; s]
+      | (CEqlInt(i1), CEqlInt(i2)) when (i1 != i2) ->
+	  [b; s]
+      | (CEqlAgent(a1), CEqlAgent(a2)) when (a1 != a2) ->
+	  [b; s]
+      | (CRange(bl, bu), CRange(sl, su)) when (bl < sl && bu > su) -> 
+	  [CRange(bl,sl); CRange(su, bu)]
+      | (CRange(bl, bu), CRange(sl, su)) when (bl < sl && bu < su) -> 
+	  [CRange(bl, min sl bu)]
+      | (CRange(bl, bu), CRange(sl, su)) when (bl < sl && bu > su) -> 
+	  [CRange(max bl su, bu)]
+      | (CRange(bl, bu), CRange(sl, su)) when (bu > sl || bl > su) -> 
+	  [b]
+      | (CGT(bi), CLT(si)) -> [CGT(max bi si)]
+      | (CLT(bi), CGT(si)) -> [CLT(min bi si)]
+      | (CGT(bi), CGT(si)) when (bi < si) -> [CRange(bi, si)]
+      | (CLT(bi), CLT(si)) when (bi < si) -> [CRange(si, bi)]
+      | _ -> []
+  in
+    List.map range_to_int (cmi (int_to_range b) (int_to_range s))
+;;
+
+let list_acc mapper list = 
+  let rec acc list ret = 
+    match list with
+	[] -> ret
+      | hd :: tl -> acc tl ((mapper hd) @ ret)
+  in
+    acc list []
 ;;
 
 (* return the first n elements of list *)
@@ -102,22 +180,6 @@ let match_signature signature name vars =
     (String.compare signature.name name == 0) &&
       ((List.length signature.params) == (List.length vars)) &&
       (match_params signature.params vars)
-;;
-
-let string_of_cnst = function
-    Any -> "Any"
-  | FalseSol -> "False"
-  | CEqlSymbol(s) -> s
-  | CEqlStr(s) -> "'" ^ s ^ "'"
-  | CEqlInt(i) -> string_of_int i
-  | CLT(i)     -> "<" ^ (string_of_int i)
-  | CGT(i)     -> ">" ^ (string_of_int i)
-  | CRange(a,b)-> (string_of_int a) ^ ".." ^ (string_of_int b)
-  | CEqlAgent(a) -> "Agent"
-;;
-
-let string_of_eval name vars =
-  name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
 ;;
 
 let remove_fact_all db pred cnsts = 
@@ -264,19 +326,6 @@ let parseDB (prog) =
   and parseEval name params =
     fun db addDB cnst -> 
        let cnsts = cnst_of_params params cnst in
-       (*let revMap rCnsts = 	 
-	 let revMapIndv cnsts param cnst = 
-	   match param with 
-	       Tst.Var(i) -> 
-		 let delta = i - (List.length cnsts) in
-		   if delta == 0
-		   then List.append cnsts [cnst]
-		   else if delta > 0
-		   then List.append cnsts (List.append (list_fill Any i) [cnst])
-		   else list_replace i cnst cnsts
-	     | _       -> cnsts
-	 in
-	   List.fold_left2 revMapIndv [] params rCnsts in*)
        let revMap rCnsts = 
 	 List.map2
 	   (fun c idx ->
@@ -304,6 +353,53 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
+  (* It probably will help to think of this function as a binary blob... *)
+  and parseNotEval name params =
+    let eval = parseEval name params in
+      fun db addDB cnsts ->
+	let rec iter_outs bigList = 
+	  (* Printf.printf "%s\n" (string_of_eval "Level:" (List.hd bigList)); *)
+	  match bigList with
+	      [] -> failwith "Internal error 23"
+	    | myRow :: [] -> 
+		let rec linearGen myList =
+		  match myList with
+		      [] -> NoSolution
+		    | hd :: tl -> Solution([hd], fun unit -> linearGen tl)
+		in
+		  linearGen myRow
+	    | myRow :: tl ->
+		let tlGenMain = iter_outs tl in
+		let rec twoGen myList nxtGen = 
+		  match myList with 
+		      [] -> NoSolution
+		    | myHd :: myTl ->
+			match nxtGen with
+			    NoSolution ->
+			      twoGen myTl tlGenMain
+			  | Solution(sol, nxtGen) ->
+			      Solution(myHd :: sol, fun unit -> twoGen myList (nxtGen()))
+		in
+		  twoGen myRow tlGenMain
+	in
+	let rec minus nxt outs =
+	  match nxt with
+	      NoSolution ->
+		(* Printf.printf "outs len: %d\n" (List.length outs); *)
+		(* Printf.printf "%s\n" (string_of_eval "step outs:" (List.hd outs)); *)
+		iter_outs outs
+	    | Solution(evCnsts, nxt) ->
+		(* Printf.printf "%s\n" (string_of_eval "step outs:" (List.hd outs)); *)
+		(* Printf.printf "%s\n" (string_of_eval "step evcn:" evCnsts); *)
+		minus
+		  (nxt())
+		  (List.map2
+		     (fun out evCnst ->
+			list_acc (fun o -> cMinus o evCnst) out)
+		     outs
+		     evCnsts)
+	in
+	  minus (eval db addDB cnsts) [cnsts]
   and parseDot2 v pred params = 
     let eval = parseEval pred params in
       (fun db addDB cnst -> 
@@ -388,6 +484,8 @@ let parseDB (prog) =
 	   (fun db addDB cnst -> NoSolution))
       | Tst.Eval (name,   params) -> 
 	  parseEval name params
+      | Tst.NEval (name,   params) -> 
+	  parseNotEval name params
       | Tst.Directive (name, params) ->
 	  parseCompilerDirective name params
       | Tst.Comp(e1, compOp, e2) ->

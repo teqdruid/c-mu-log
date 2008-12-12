@@ -196,6 +196,8 @@ let translate_rule mRule =
 	    translate_comp expr1 compOp expr2
 	| Eval(name, Params(params)) ->
 	    Tst.Eval(name, translate_params params)
+	| NEval(name, Params(params)) ->
+	    Tst.NEval(name, translate_params params)
 	| Dot2(vname, pred, Params(params)) ->
 	    Tst.Dot2(bget vname, pred, translate_params params)
 	| Directive(n, Params(params)) ->

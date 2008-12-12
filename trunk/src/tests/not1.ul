@@ -1,0 +1,16 @@
+wall(10);
+
+wall($y) {
+    4 < $y;
+    $y < 6;
+}
+
+main() {AND:
+    @print($y);
+    {AND:
+	$y > 1;
+	$y < 15;
+    }
+
+    !wall($y);
+}
