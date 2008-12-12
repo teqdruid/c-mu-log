@@ -266,8 +266,12 @@ let rec list_replace i e list =
 let rec range i j = if i >= j then [] else i :: (range (i+1) j)
 
 let parseDB (prog) = 
+
+  (* Our only compiler directive is print, for now.
+     learn/forget have a special syntax *)
   let parseCompilerDirective name params =
     let nc = String.compare name in
+      (* Print something... probably just "Hello World" *)
       if (nc "print") == 0
       then
 	fun db addDB cnst ->
@@ -287,6 +291,11 @@ let parseDB (prog) =
 	 fun db addDB cnst ->
 	   NoSolution)
   in
+
+
+ (* Compute AND blocks by cANDing all the solutions in each row
+  *  of the cross product of all the possible solutions 
+  *)
   let rec parseAndBlock stmts = 
     match stmts with
 	[] -> (fun db addDB cnst -> Solution (cnst, fun unit -> NoSolution))
@@ -309,6 +318,9 @@ let parseDB (prog) =
 			runNextGens (fun unit -> nextGenMain thisCnsts)
 	      in
 		runThisGens (fun unit -> thisStatement db addDB cnst)
+
+
+  (* Return all the solutions from one, then go to the next *)
   and parseOrBlock stmts = 
     match stmts with
 	[] -> (fun db addDB cnst -> NoSolution)
@@ -323,9 +335,14 @@ let parseDB (prog) =
 						    (fun unit -> runOr (nxt ())))
 	      in
 		runOr (currStmt db addDB cnst)
+
+
+
+  (* Return the results from a query *)
   and parseEval name params =
     fun db addDB cnst -> 
        let cnsts = cnst_of_params params cnst in
+	 (* Map the slots returned from the eval into our slot-space *)
        let revMap rCnsts = 
 	 List.map2
 	   (fun c idx ->
@@ -342,6 +359,7 @@ let parseDB (prog) =
 	   cnst
 	   (range 0 (List.length cnst))
        in
+	 (* Run the eval, then send back the results, reverse mapping the slots as we go *)
        let nxt = run_eval db addDB name cnsts in
        let rec doNxt nxt =
 	 match nxt with 
@@ -353,10 +371,20 @@ let parseDB (prog) =
 		 Solution(rCnsts, (fun unit -> doNxt (nxt ())))
        in
 	 doNxt nxt
-  (* It probably will help to think of this function as a binary blob... *)
+
+
+ (* ********   BEHOLD ---- The bane of my existence!!!!!!    *)
+
+ (* A dumber man could not have written this function...
+  *   ... A smarter man would have known not to.
+  *)
   and parseNotEval name params =
     let eval = parseEval name params in
       fun db addDB cnsts ->
+	(* It probably will help to think of this function as a binary blob... 
+	 *    I blacked out while I was writing it, but I remember it having
+	 *    something to do with lazily-generated cross products. ~John
+	 *)
 	let rec iter_outs bigList = 
 	  (* Printf.printf "%s\n" (string_of_eval "Level:" (List.hd bigList)); *)
 	  match bigList with
@@ -400,6 +428,9 @@ let parseDB (prog) =
 		     evCnsts)
 	in
 	  minus (eval db addDB cnsts) [cnsts]
+
+
+  (* Run an eval in somebody else's database *)
   and parseDot2 v pred params = 
     let eval = parseEval pred params in
       (fun db addDB cnst -> 
@@ -410,6 +441,8 @@ let parseDB (prog) =
 		     "Warning: attempted dot ('.') on a non-agent: %s\n"
 		     (string_of_cnst a);
 		   NoSolution))
+
+
   and doAnd myCnsts db addDB cnst =
     let sol = cnstAndAll myCnsts cnst in
       (*(print_string (string_of_eval "" myCnsts));
