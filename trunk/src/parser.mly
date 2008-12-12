@@ -84,7 +84,7 @@ statement:
 | ID LPAREN param_list RPAREN SEMICOLON                	{Eval($1, Params(List.rev $3)) }
 | NOT ID LPAREN param_list RPAREN SEMICOLON             {NEval($2, Params(List.rev $4)) }
 | VARIABLE DOT ID LPAREN stmt_list_first RPAREN 	{Dot1($1,$3,Stmts(List.rev $5))}
-| VARIABLE DOT ID LPAREN param_list RPAREN	 	{Dot2($1,$3,Params(List.rev $5))}
+| VARIABLE DOT ID LPAREN param_list RPAREN SEMICOLON 	{Dot2($1,$3,Params(List.rev $5))}
 | expr EQ expr  SEMICOLON     				{Comp($1,Eq,$3)}
 | expr NEQ expr SEMICOLON				{Comp($1,Neq,$3)}
 | expr GT expr  SEMICOLON				{Comp($1,Gt,$3)}

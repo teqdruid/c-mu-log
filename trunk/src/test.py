@@ -26,11 +26,13 @@ tests = glob.glob("tests/*.ul")
 tests.sort()
 for test in tests:
     testOut = test.replace(".ul", ".out")
-    if not os.path.exists(testOut):
-        print "Warning, no comparison output exists for ", test
-        continue
-    sys.stdout.write("Running %-25s..." % test)
+    sys.stdout.write("Running %-35s..." % (test))
     sys.stdout.flush()
+
+    if not os.path.exists(testOut):
+        print "No Output"
+        continue
+
     if (test.find("/pr") != -1):
         prog = "print <"
     else:
@@ -39,6 +41,6 @@ for test in tests:
         else:
             prog = "culog"
     if run_and_compare("./%s %s 2>&1" % (prog, test), testOut):
-        print "\tOK"
+        print "OK"
     else:
-        print "\tFAIL!"
+        print "FAIL!"
