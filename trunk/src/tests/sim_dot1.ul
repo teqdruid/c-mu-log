@@ -1,0 +1,18 @@
+size(10, 10);
+wall(?, 7);
+goal(6, 6);
+
+imove("UP");
+imove("RIGHT");
+imove("RIGHT");
+imove("RIGHT");
+imove("RIGHT");
+imove("RIGHT");
+
+move($dir) {
+    imove($dir);
+}
+
+move("UP");
+
+agent("d", "tests/agents/dot1.ul");

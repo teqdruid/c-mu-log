@@ -172,6 +172,17 @@ let translate_rule mRule =
 	then translate_comp_sv expr1 op expr2
 	else translate_comp_sv expr2 (rev_op op) expr1
     in
+    let mapEvList evList = 
+      List.map
+	(fun ev -> 
+	   match ev with
+	       (name, Params(plist)) -> 
+		 (name,
+		  translate_params plist)
+	     | (name, Array(alist)) -> 
+		 failwith "Syntax error, arrays not permitted as params")
+	evList
+    in
       (* Translate a single statement *)
     let rec replace_stmt stmt = 
       match stmt with
@@ -186,18 +197,9 @@ let translate_rule mRule =
 	| Directive(n, Params(params)) ->
 	    Tst.Directive(n, translate_params params)
 	| DirectiveStudy(n, evList) ->
-	    let evListMapped = 
-	      List.map
-		(fun ev -> 
-		   match ev with
-		       (name, Params(plist)) -> 
-			 (name,
-			  translate_params plist)
-		     | (name, Array(alist)) -> 
-			 failwith "Syntax error, arrays not permitted as params")
-		evList
-	    in
-	      Tst.DirectiveStudy(n, evListMapped)
+	    Tst.DirectiveStudy(n, mapEvList evList)
+	| Dot1(vname, n, evList) ->
+	    Tst.Dot1(bget vname, n, mapEvList evList)
 	| _ -> failwith "Unsupported statement"
     in
       List.map replace_stmt stmts
@@ -207,9 +209,11 @@ let translate_rule mRule =
 	[] -> []
       | Tst.Block(redOp, stmts) :: tail ->
 	  Tst.Block(redOp, filterSE stmts) :: filterSE tail
-      | Tst.Directive(n, p) :: tail ->
+      | Tst.Directive(_, _) :: tail ->
 	  filterSE tail
-      | Tst.DirectiveStudy(n, p) :: tail ->
+      | Tst.DirectiveStudy(_, _) :: tail ->
+	  filterSE tail
+      | Tst.Dot1(_, _, _) :: tail ->
 	  filterSE tail
       | head :: tail  ->
 	  head :: filterSE tail
@@ -223,6 +227,8 @@ let translate_rule mRule =
 	  Tst.Directive(n, p) :: filterNSE tail
       | Tst.DirectiveStudy(n, p) :: tail ->
 	  Tst.DirectiveStudy(n, p) :: filterNSE tail
+      | Tst.Dot1(v, n, p) :: tail ->
+	  Tst.Dot1(v, n, p) :: filterNSE tail
       | head :: tail  ->
 	  filterNSE tail
   in

@@ -357,6 +357,16 @@ let parseDB (prog) =
       else if (nm "forget1") == 0 
       then (fun db addDB cnsts -> remove_fact1 db addDB cnsts; NoSolution)
       else failwith ("Invalid directive: " ^ name)
+  and parseDot1 v dname statements = 
+    let study = parseLearnForget dname statements in
+      (fun db addDB cnst -> 
+	 match (List.nth cnst v) with
+	     CEqlAgent(adb) -> 
+	       study adb (ref []) cnst
+	   | a -> (Printf.printf 
+		     "Warning: attempted @ dot ('.') on a non-agent: %s\n"
+		     (string_of_cnst a);
+		   NoSolution))
   and parseStatement statement = 
     match statement with 
 	Tst.Block (redOp, statements)
@@ -380,6 +390,8 @@ let parseDB (prog) =
 	  parseStrComp v s
       | Tst.SymComp(v, s) ->
 	  parseSymComp v s
+      | Tst.Dot1(v, dname, statements) ->
+	  parseDot1 v dname statements
       | Tst.Dot2(v, pred, params) ->
 	  parseDot2 v pred params
   in
