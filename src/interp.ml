@@ -221,23 +221,24 @@ let parseDB (prog) =
     match stmts with
 	[] -> (fun db addDB cnst -> Solution (cnst, fun unit -> NoSolution))
       | stmt :: tail ->
-	  let s = (parseStatement stmt) in
-	  let n = (parseAndBlock  tail) in
+	  let nextStatement = (parseAndBlock tail) in
+	  let thisStatement = (parseStatement stmt) in
 	    fun db addDB cnst ->
-	      let rec run_merge aNext bNext =
-		match (aNext, bNext) with
-		    (Solution(aC, aN), Solution(bC, bN)) ->
-		      ( let result = cnstAndAll aC bC in
-			 if List.for_all (fun a -> a != FalseSol) result
-			 then Solution(result, 
-				       (fun unit -> run_merge aNext (bN ())))
-			 else run_merge aNext (bN ()))
-		  | (Solution(sCnst, aN), NoSolution) -> run_merge (aN ()) (n db addDB cnst)
-		  | (NoSolution, _) -> NoSolution
+	      let nextGenMain = (nextStatement db addDB) in
+	      let rec runThisGens thisGen =
+		match (thisGen ()) with
+		    NoSolution -> NoSolution
+		  | Solution (thisCnsts, thisGenNxt) ->
+		      let rec runNextGens nextGen =
+			match (nextGen ()) with
+			    NoSolution ->
+			      runThisGens thisGenNxt
+			  | Solution(nextCnsts, nextGenNxt) ->
+			      Solution(nextCnsts, fun unit -> runNextGens nextGenNxt)
+		      in
+			runNextGens (fun unit -> nextGenMain thisCnsts)
 	      in
-	      let sN = (s db addDB cnst) in
-	      let nN = (n db addDB cnst) in
-		run_merge sN nN
+		runThisGens (fun unit -> thisStatement db addDB cnst)
   and parseOrBlock stmts = 
     match stmts with
 	[] -> (fun db addDB cnst -> NoSolution)
@@ -300,8 +301,7 @@ let parseDB (prog) =
       (fun db addDB cnst -> 
 	 match (List.nth cnst v) with
 	     CEqlAgent(adb) -> 
-	       Printf.printf "Dot2: %d %s\n" v pred;
-	       (eval adb (ref []) cnst)
+	       eval adb (ref []) cnst
 	   | a -> (Printf.printf 
 		     "Warning: attempted dot ('.') on a non-agent: %s\n"
 		     (string_of_cnst a);
