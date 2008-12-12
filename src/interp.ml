@@ -1,8 +1,16 @@
 (*
-*  interp.ml
-*
-*  Started on  Wed Nov  5 15:13:52 2008 John Demme
-*)
+ *  interp.ml
+ *
+ *  This guy is the interpreter... It "compiles" the TST to a bunch of OCaml
+ *     functions to be run during a query.
+ *
+ *  You'll quickly be able to tell that this whole method is _begging_ for co-routines.
+ *    Lazy evaluation could be beneficial here as well.
+ *
+ * 
+ *  John Demme
+ * 
+ *)
 
 type var_cnst = 
     Any

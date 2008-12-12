@@ -1,7 +1,10 @@
 (* Functions to modify the AST slightly 
    to make parsing it easier for the interpreter.
    
-   Static checking could happen here as well. *)
+   Static checking could happen here as well. 
+
+   John Demme
+*)
 
 open Ast
 
@@ -172,6 +175,7 @@ let translate_rule mRule =
 	then translate_comp_sv expr1 op expr2
 	else translate_comp_sv expr2 (rev_op op) expr1
     in
+      (* translate a list of evals *)
     let mapEvList evList = 
       List.map
 	(fun ev -> 
@@ -204,6 +208,8 @@ let translate_rule mRule =
     in
       List.map replace_stmt stmts
   in
+    (* Given a list of TST statements, prune out the ones
+       which have no effect on the solutions *)
   let rec filterSE stmts =
     match stmts with
 	[] -> []
@@ -218,6 +224,8 @@ let translate_rule mRule =
       | head :: tail  ->
 	  head :: filterSE tail
   in
+    (* Given a list of TST statements, prune out the ones
+       which have some effect on the solutions *)
   let rec filterNSE stmts = 
     match stmts with
 	[] -> []
@@ -232,6 +240,8 @@ let translate_rule mRule =
       | head :: tail  ->
 	  filterNSE tail
   in
+    (* This is the entry point for translate_rule
+          ... It's been awhile, so I figured you might need a reminder *)
     match mRule with
 	Rule(name, Params(params), stmt) -> 
 	  let replacedStmts = translate_stmts [stmt] in
