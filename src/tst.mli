@@ -31,6 +31,7 @@ type stmt =
   | Directive of string*params       		(*@print("dfdsf");*)
   | Dot1 of int*string*(eval list)            	(*$agent.@learn(wall(4,5);) *)
   | Dot2 of int*string*params	          	(* env.view($X,$Y,$Obj)*)
+  | NDot2 of string*string*params          	(* !env.view($X,$Y,$Obj)*)
 
 and stmts=stmt list  (* statment1;statment2;statement3; *) 
 

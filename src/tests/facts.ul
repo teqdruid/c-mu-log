@@ -4,11 +4,12 @@ foo(symA);
 
 bar($name);
 
-foo();
+foo(){wall(3);};
 
 main() {OR:
     @print($a, " ", $b);
     foo($a);
     foo($a, $b);
-    bar($a);
+    bar("$a");
 }
+

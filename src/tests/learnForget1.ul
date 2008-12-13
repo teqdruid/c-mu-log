@@ -6,7 +6,7 @@ f() {
     @print("Removing: ", $s);
     @forget( stack($s); );
 
-    $s == "s1";
+     $s == "s1";
 }
 
 l() {
