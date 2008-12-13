@@ -77,10 +77,12 @@ stmt_list:
 
 statement:
   
-| block {$1}
+  block {$1}
 | ID LPAREN param_list RPAREN SEMICOLON                	{Eval($1, Params(List.rev $3)) }
 | NOT ID LPAREN param_list RPAREN SEMICOLON             {NEval($2, Params(List.rev $4)) }
 | VARIABLE DOT ID LPAREN param_list RPAREN SEMICOLON 	{Dot2($1,$3,Params(List.rev $5))}
+| NOT VARIABLE DOT ID LPAREN param_list RPAREN SEMICOLON{NDot2($2,$4,Params(List.rev $6))}
+| VARIABLE DOT AT ID LPAREN direc_list RPAREN SEMICOLON {Dot1($1,$4,(List.rev $6))}
 | expr EQ expr  SEMICOLON     				{Comp($1,Eq,$3)}
 | expr NEQ expr SEMICOLON				{Comp($1,Neq,$3)}
 | expr GT expr  SEMICOLON				{Comp($1,Gt,$3)}
@@ -89,7 +91,7 @@ statement:
 | expr LEQ expr	SEMICOLON				{Comp($1,Leq,$3)}
 | AT ID LPAREN param_list RPAREN SEMICOLON		{Directive($2, Params(List.rev $4))}
 | AT ID LPAREN direc_list_first RPAREN SEMICOLON	{DirectiveStudy($2,(List.rev $4))}
-| AT VARIABLE DOT ID LPAREN direc_list_first RPAREN SEMICOLON {Dot1($2,$4,List.rev $6)}
+
 
 
 direc_list_first:
