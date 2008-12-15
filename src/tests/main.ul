@@ -15,7 +15,6 @@ main ()
 {
     @print("Wall: ", $x, ",", $y);
     wall($x, $y);
-    !$x.wall(4,5);	
 }
 
 		
