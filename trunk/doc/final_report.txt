@@ -1,0 +1,108 @@
+1.Introduction.
+
+1.1 c-mu-log:
+
+CμLOG is a logic language designed for entity interaction simulation. It uses a method for searching for solutions, very similar to Prolog and uses a syntax similar to C, making it easier on the typical programmer’s eyes, and already integrates with some code tools, such as code indenters. To run a useful application on CμLOG you will need to have an environment entity (defining the environment and game) and at least one agent, to provide a subject to be simulated. We link entities to the environment statically. 
+
+
+1.2 Application & Features:
+
+One uses the language to provide a set of facts and rules, and the “program” is run by asking a question, which the interpreter attempts to answer using inference based on the fact and rule set. CμLOG is designed for simulation, so typically a simulator will ask a given agent program what it’s next action will be. The agent program then uses CμLOG’s entity interaction features to gather information about it’s environment and decide what to do. Each agent program communicates with other programs to find out more information about other agents or its own status in the environment. The simulator has all the information about each agent. 
+
+As this language is going to be used for simulating real life motions, we strongly emphasize that the program learn and forget data/rules/information at run-time. For this, similar to “assert” and “retract” of Prolog we have introduced two functions called “learn” and “forget.” In CμLOG there exist no specific data structures like you would see in Java or Python, however rules and facts can be added to the program dynamically, which allows programs to remember data in a much more natural way since the data simply becomes part of the running code. 
+
+Another feature of CμLOG is that it has a powerful library of its own and also can support third party libraries. The library supports functions like range, and move which are very useful for simulating any environment. These functions are available in a library and can also be complemented by the user to suit his needs. The default library will always be included in the program without any specific code but a third party one would have to be explicitly
+included in the program in the following way: 
+    @attach< abc.xx >
+
+The simulator discussed could be modified to be used for flight simulation of several agents in a grid based airspace. Alternatively, it could be used in a real environment like the movement of pick and place robots in a warehouse. The language could be used to define the warehouse environment and agent programs for robots.
+
+1.3 Goals:
+
+The language presented here attempts to fulfill the following requirements:
+   1.3.1 Generic:
+	 Games are defined completely by the environment application.
+
+   1.3.2 Composable:
+	Individual behaviors can be written simply and easily, then combined to obtain high-level actions and reasoning.
+
+   1.3.3 Declarative:
+	 Programmers can specify what they want entities to do rather than how
+
+   1.3.4 Controlled Communication: 
+	Data in the system is frequently made up of nearly-atomic bits of data many of which can be used both on their own and composed as complex data. 		This means that subsets and smaller pieces of data can be communicated between entities without loosing meaning.
+
+   1.3.5 High-level libraries: 
+	Due to the flexibility of the language, high-level algorithms–such as path-finding–can be easily implemented in libraries, allowing further, 		domain-specific intelligence to be written in the programs.
+
+
+
+2.tutorial:
+
+
+Logic programming is a kind of computer programming using mathematical logic. Specifically, it is based on the the idea that of applying a theorem-prover to declarative sentences and deriving implications. Compared with procedural languages, logic programming solves the problem by setting rules with which solutions must fit. We can represent logic programming by the formula:
+                                           Facts + Rules = Solutions
+
+Logic programming languages provide several important advantages:
+    • Logic programming languages are inherently “high level” languages, allowing programmers to specify problems in a declarative manner, leaving some of 	 all of the details of solving the problem to the interpreter. 
+    • The structures–both programming structures and data structures–in both prolog and CμLOG can be very simple- such as facts. The relationship between 	code and data is also of note. CμLOG uses the Von Neumann style (vs. Harvard architecture) wherein data is code. It is therefore possible (and 	  	inherently necessary) for programs to be introspective, and self-modifying. In other words, it is easier for programs to learn and adapt.
+
+                                                         
+The environment is grid based and defined by a CμLOG program. It potentially includes obstacles and a goals which the agent must reach, however the game is defined almost entirely by the environment program. Every object (i.e. agents, walls, switches, goals) in the environment is defined by grid positions. The environment specifies the representations of the entities to the simulator. The simulator re-evaluates the object rule during each turn when
+it renders the grid, so the contents of the grid can be dynamically defined based on the state of the simulation or the contents of the program (which can be changed by the program.) For example based on the grid position of the agent the environment might remove or insert a wall. The agent program decides the next move based on previous moves and obstacle data.
+
+The simulation of the agent program is also turn based. Each time the agent makes a move it sends its new coordinates to the simulator. The new coordinates become part of the simulation’s rules which are exposed to the environment when it is solved to render the scene.
+
+How to use Cmulog:
+
+
+3. LRM(append)
+4. Project PLan:
+Responsibilities:
+
+It was the responsibility of each team member to complete and help complete the individual parts of the interpreter. Specifically, initially the scanner and parser were developed by Devesh Dedhia and Nishant Shah. The AST file was done by Cheng Cheng. The interpreter and translator were completed by John Demme. Nishant Shah Cheng Cheng developed the simulator together. Testing each phase and testing the whole system was not assigned to any particular person as it requires as much man power available. So testing was done by every group member.
+
+Project Timeline:
+The following were the timelines we decided on at the start of the semester:
+>Language Features design	Oct 20
+>LRM				Oct 22
+>Scanner/Parser			Nov 5
+>Translator			Nov 15
+>Interpreter			Nov 22
+>Simulator			Nov 27
+>Cold Freeze			Dec 12
+
+*Testing would be rigorously till the day of submission to try and make the code perfect.
+
+As we started working on the project, it was soon realized that the above deadline are not what our aim should be as, it is not a start-end process. The development process was more like evolution. So every section was up and running by Nov 15th, i.e. by then we were able to print "hello world" in our language. After that we have been adding features and for that support is needed on every level, including the scanner, parser, ast file, translator, interpreter and the simulator. So all members have been simultaneously working on the development and also testing the features at the same time.
+
+Software Development Environment:
+The project will be developed on Ubuntu using Objective Caml 3.1.0. The scanner will be developed using Ocamllex v3.1.0. The parser will be developed using Ocamlyacc v3.1.0. We will use Python to run our tests and compare it with the expected output. Version control,managing multiple revisions of files, not only program source files, but any type of files will be done using SVN, a concurrent sucessor of CVS. We will use Google Code for issue tracking and Google groups("pltsim") for communicating within ourselves. Even the TA, Rajesh Venkataraman is a member of the group.
+
+
+
+5 architecture:
+
+The language CμLOG we have designed will be used for communication between agents and an environment, as well as to determine behavior of said entities. Every agent program communicates with the environment program through a simulator. The simulator runs a CμLOG logic solver and interpreter which functions on a set of rules defined and modified by the environment and agents then provides solutions representing the actions to be taken by the agents.
+
+[figure]
+
+The cmulog interpreter consists of several major blocks which are common in interpreter designs: scanner, parser,translator and the interpreter. The relationship between these components is demonstrated in Figure *. The input to the translator* are motion simulation speci cation files with a *.ul format and the final output of the form the translator would be a bunch of files showing the simulation results in ascii format. The translator takes one or more files at a time, depending on the number of agents and also the type of environment. We have created the whole translator in Ocaml and used Ocamllex for making the scanner and Ocamlyacc to make the parser.
+
+[figure]
+
+The translator is a unique feature added to make the working of the interpreter fast, easy and elegant. The translator accepts the abstract syntax tree(ast) and converts it into a translated syntax tree (tst). This conversion, though not a neccesity is done to ease the interpreting process. The translator removes all the variable names and indexes them to a list and then each of them are identified by the number rather than the name. An array would seem like the ideal option here, but lists are easy to handle in Ocaml and hence we have used them. It also seperates all the statement with and without side-effects and runs all the ones without side-effects once for each solution. It performs all possible arithmetic to reduce each  statement into its simplest form. It brings the unknown variable to the leftmost side by making all the necessary changes. For eg: (3+4>$x-1) will reduce to ($x<6). Lastly, all the static semantic checking is also done in the translator.
+
+When the input file is run on the simlulator, it invokes the scanner that produces the various tokens. These tokens are fed to the parser which produces the abstarct sytax tree and passes it onto the simulator. Now the simulator takes the ast and invokes the 'translate' function of the translator through the interpreter. The interpreter is invoked with the ast file. The interpreter inturn passes this ast to the translator to get the simplified version, the translated syntax tree, 'tst'. All this happen statically. Now as each statement of the program is executed, the simulator queries the intrepreter for a solution. The interpreter then provides  a reference to the database created, pointing to the solution. Simulator contains databases for each entity involved in the simulation. Now the interpreter just provides reference to the next solution on the database. When a learn or forget command are encountered, the reference to the database is changed to the refernce to the new database. These solutions are then simulated and next move of the entity is generated on a *.dat file. For every move a new file is created and thus each simulation move can be viewed seperately.
+
+Test Plan:
+
+# Test Plan
+
+    * Show two or three representative source language programs along with the target language program generated for each
+    * Show the test suites used to test your translator
+    * Explain why and how these test cases were chosen
+    * What kind of automation was used in testing
+
+
+
