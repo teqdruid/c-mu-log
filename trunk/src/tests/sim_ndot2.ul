@@ -1,0 +1,11 @@
+size(3,3);
+
+wall(3,3);
+
+goal(3,1);
+
+disallow("DOWN");
+disallow("LEFT");
+disallow("UP");
+
+agent("x", "tests/agents/ndot2.ul");

@@ -1,0 +1,13 @@
+Moving: 'RIGHT'
+x: Moving RIGHT
+
+==== Turn 1 ====
+. . | 
+. . . 
+. x # 
+
+Moving: 'RIGHT'
+x: Moving RIGHT
+
+Simulation over: x wins!!!Successfully reach the goal at position (3,1)
+

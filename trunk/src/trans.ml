@@ -200,6 +200,8 @@ let translate_rule mRule =
 	    Tst.NEval(name, translate_params params)
 	| Dot2(vname, pred, Params(params)) ->
 	    Tst.Dot2(bget vname, pred, translate_params params)
+	| NDot2(vname, pred, Params(params)) ->
+	    Tst.NDot2(bget vname, pred, translate_params params)
 	| Directive(n, Params(params)) ->
 	    Tst.Directive(n, translate_params params)
 	| DirectiveStudy(n, evList) ->

@@ -340,22 +340,25 @@ let parseDB (prog) =
 
   (* Return the results from a query *)
   and parseEval name params =
+    let param_var_index var_idx =
+      let rec pvi_iter plist idx =
+	match plist with
+	    [] -> -1
+	  | Tst.Var(i) :: tl when i == var_idx -> idx
+	  | _ :: tl -> pvi_iter tl (idx + 1)
+      in
+	pvi_iter params 0
+    in
     fun db addDB cnst -> 
        let cnsts = cnst_of_params params cnst in
 	 (* Map the slots returned from the eval into our slot-space *)
        let revMap rCnsts = 
 	 List.map2
-	   (fun c idx ->
-	      let intoMe = List.fold_left2
-		(fun a prm pIdx -> 
-		   match prm with
-		       Tst.Var(i) when i == idx -> (List.nth rCnsts pIdx) :: a
-		     | _ -> a)
-		[]
-		params
-		(range 0 (List.length params))
-	      in
-		List.fold_left cAnd c intoMe)
+	   (fun cnst idx -> 
+	      let pIdx = param_var_index idx in
+		if pIdx == -1
+		then cnst
+		else cAnd cnst (List.nth rCnsts pIdx))
 	   cnst
 	   (range 0 (List.length cnst))
        in
@@ -410,29 +413,41 @@ let parseDB (prog) =
 		in
 		  twoGen myRow tlGenMain
 	in
+
+	(* Iterate through all the solutions, subtracting all the new solutions
+	 * from the existing ones being stored in 'outs'
+	 *)
 	let rec minus nxt outs =
 	  match nxt with
 	      NoSolution ->
-		(* Printf.printf "outs len: %d\n" (List.length outs); *)
-		(* Printf.printf "%s\n" (string_of_eval "step outs:" (List.hd outs)); *)
 		iter_outs outs
 	    | Solution(evCnsts, nxt) ->
-		(* Printf.printf "%s\n" (string_of_eval "step outs:" (List.hd outs)); *)
-		(* Printf.printf "%s\n" (string_of_eval "step evcn:" evCnsts); *)
 		minus
 		  (nxt())
+		  (* (list_acc (fun out -> List.map2 cMinus out evCnsts) outs) *)
 		  (List.map2
 		     (fun out evCnst ->
 			list_acc (fun o -> cMinus o evCnst) out)
 		     outs
 		     evCnsts)
 	in
-	  minus (eval db addDB cnsts) [cnsts]
+	  (* Start with the input solution, and subtract all the results *)
+	  minus (eval db addDB cnsts) (List.map (fun c -> [c]) cnsts)
 
 
   (* Run an eval in somebody else's database *)
   and parseDot2 v pred params = 
     let eval = parseEval pred params in
+      (fun db addDB cnst -> 
+	 match (List.nth cnst v) with
+	     CEqlAgent(adb) -> 
+	       eval adb (ref []) cnst
+	   | a -> (Printf.printf 
+		     "Warning: attempted dot ('.') on a non-agent: %s\n"
+		     (string_of_cnst a);
+		   NoSolution))
+  and parseNDot2 v pred params = 
+    let eval = parseNotEval pred params in
       (fun db addDB cnst -> 
 	 match (List.nth cnst v) with
 	     CEqlAgent(adb) -> 
@@ -533,6 +548,8 @@ let parseDB (prog) =
 	  parseDot1 v dname statements
       | Tst.Dot2(v, pred, params) ->
 	  parseDot2 v pred params
+      | Tst.NDot2(v, pred, params) ->
+	  parseNDot2 v pred params
   in
   let parseRule stmt slots actions = 
     fun db addDB inCnsts ->      

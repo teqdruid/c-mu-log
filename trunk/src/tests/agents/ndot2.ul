@@ -1,0 +1,14 @@
+move($dir) {
+    {OR:
+	$dir == "UP";
+	$dir == "DOWN";
+	$dir == "LEFT";
+	$dir == "RIGHT";
+    }
+
+    @print("Moving: ", $dir);
+    env($e);
+    !$e.disallow($dir);
+}
+
+
