@@ -44,7 +44,9 @@ let getBindings mRule =
       match params with
 	  [] -> bindings
 	| Var(name) :: tail ->
-	    get_params_var_mapping tail (StringMap.add name len bindings)
+	    if (StringMap.mem name bindings)
+	    then failwith "You cannot list the same variable twice in a parameter list"
+	    else get_params_var_mapping tail (StringMap.add name len bindings)
 	| i :: tail -> 
 	    get_params_var_mapping tail (StringMap.add (string_of_int len) len bindings)
   in
