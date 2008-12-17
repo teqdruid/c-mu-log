@@ -44,6 +44,8 @@ and string_of_stmt = function
     Block(red, stmts) -> "{" ^ red ^ ":\n" ^ (string_of_stmts stmts) ^ "\n}"
   | Comp(v, c, e2) -> ("$" ^ (string_of_int v)) ^ (string_of_compoperator c) 
       ^ (string_of_expr e2) ^ ";"
+  | SymComp(v, s2) -> ("$" ^ (string_of_int v)) ^ ("==") ^ (s2) ^ ";"
+  | StrComp(v, s2) -> ("$" ^ (string_of_int v)) ^ ("==\"") ^ (s2) ^ "\";"
   | Eval(name, ps) -> name ^ "(" ^ (string_of_params ps) ^ ");"
   | NEval(name1, ps1) -> "!" ^ name1 ^ "(" ^ (string_of_params ps1) ^ ");"	
   | DirectiveStudy(name,stmts) -> "@"^name ^ "(" ^ 
@@ -52,6 +54,7 @@ and string_of_stmt = function
   | Dot1(v,str2,stmts) -> "$"^(string_of_int v)^"."^"@"^str2^"("^
       (string_of_stmts (List.map (fun a -> Eval(a)) stmts)) ^ ")"
   | Dot2(v,str2,ps) -> "$"^(string_of_int v)^"."^str2^"("^(string_of_params ps)^");"
+  | NDot2(v,str2,ps) -> "!$"^(string_of_int v)^"."^str2^"("^(string_of_params ps)^");"
 
 let string_of_ruleFact = function
   | Rule(name, params, slots, stmt, nseStmts) ->
