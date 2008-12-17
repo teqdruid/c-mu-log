@@ -1,13 +1,26 @@
+(* simulator.ml
+ * This is a simulator for entities interaction. 
+ * Specifically, simulator comprises of two parts.
+ * Part 1 : Simulator obtains information about agents and environment(grids) and simulate their behaviors
+ * Part 2 : Simulator displays and outputs results to external files.
+displays how agents move under the environment  
+ *
+ * Original author: Cheng Cheng for part1
+ *                  Nishant Shah for part2
+ * Support for loading multi-agents is added by John Demme
+ *)
+
 open Interp
 open Ast
 
-
+(* define global references to the parameters of environment*)
 let grid_size_ref=ref 1;;
 let grid_x_size_ref=ref 1;;
 let grid_y_size_ref=ref 1;;
 let goal_x_ref=ref 1;;
-let goal_y_ref=ref 1;; (* define a goal*)
+let goal_y_ref=ref 1;; 
 
+(* define data structure of agent*)
 type sim_agent = {
   x   : int;
   y   : int;
@@ -15,13 +28,13 @@ type sim_agent = {
   db  : database
 }
 
-open Printf;;
-(*a global array to restore information of wall and agent *)
-(* '.'represent empty grid,'|' represents wall *)
+(*define a global array to restore information of wall and positions of agents *)
+(* maximum environment size is 100*100 *)
+(* '.'represents empty grid,'|' represents wall*)
 let record=
   let f index='.' in
     Array.init 10000 f ;;
-(* maximum grid size is 100*100 *)
+
 let clear_array a=
   for index=0 to (Array.length a)-1 do
     if index= (!grid_y_size_ref- !goal_y_ref)* !grid_x_size_ref+ !goal_x_ref-1 then
@@ -37,6 +50,7 @@ let sim_exit s =
   exit(1)
 ;;
 
+(*set the size of environment *)
 let rec set_size nxt=
   match nxt with
       NoSolution-> ()
@@ -50,10 +64,10 @@ let rec set_size nxt=
                  grid_y_size_ref:=y;
                  grid_size_ref:=x*y
                end
-                 (* print_int x;print_char '|';print_int y*)
            |_-> ())
 ;;
 
+(* set the goal agents try to reach*)
 let rec set_goal nxt=
   match nxt with
       NoSolution-> ()
@@ -69,6 +83,7 @@ let rec set_goal nxt=
            |_->())
 ;;
 
+(* display and output the results after interactions*)
 let print_grid oc arr = 
   for a=0 to !grid_y_size_ref-1
   do
@@ -85,18 +100,18 @@ let print_file j arr =
   let oc = open_out file in    (* create or truncate file, return channel *)
     (print_grid oc arr;
      close_out oc)
-;;             (* flush and close the channel *)
-
+;;
+      
 let print_stdout j arr = 
   Printf.printf "\n==== Turn %d ====\n" j;
   print_grid stdout arr;
   print_string "\n"
 ;;
 
+(* create wall in environment*)
 let create_wall x_start x_end y_start y_end =
   if x_start<1 || x_end> !grid_x_size_ref then    
-    failwith "Creating Wall : x position of wall exceeds the grids"
-      
+    failwith "Creating Wall : x position of wall exceeds the grids"      
   else if y_start<1 || y_end> !grid_y_size_ref then 
     failwith "Creating Wall : y position of wall exceeds the grids"
   else if x_start>x_end || y_start>y_end then failwith "Creating Wall:wrong range!!!"
@@ -108,6 +123,7 @@ let create_wall x_start x_end y_start y_end =
 ;;
 
 
+(* obtain wall information from interpretor and create walls*)
 let rec iter_wall nxt=
   match nxt with
       NoSolution -> ()
@@ -142,6 +158,7 @@ let rec iter_wall nxt=
 	iter_wall (n ())
 ;;
 
+(* agent moves towards to a direction*)
 let agent_move a direction =
   Printf.printf "%c: Moving %s\n" a.sym direction;
   match direction with 
@@ -152,6 +169,8 @@ let agent_move a direction =
     | _ ->failwith "No such a direction!"
 ;;
 
+(*simulator stores the information of agent's move  *)
+(*if agent reaches the goal or hits wall, simulator terminates *)
 let do_agent_move a = 
   let array_index=(!grid_y_size_ref - a.y)* !grid_x_size_ref + a.x-1 in
     if a.x < 1|| a.x > !grid_x_size_ref then (*x position is beyond range *)
@@ -183,6 +202,7 @@ let do_agent_move a =
     else record.(array_index)<- a.sym
 ;;
 
+(* obtain current position of agent from interpretor and make it move*)
 let iter_move agent nxt =
   match nxt with
       NoSolution -> failwith "No Solution"
@@ -193,6 +213,7 @@ let iter_move agent nxt =
     | _ -> failwith "Invalid (or no) move"
 ;;
 
+(* load the databases of all agents in environment*)
 let my_loc_db agent all env = 
   ref ([Interp.Fact({name = "loc"; params = [CEqlInt(agent.x);CEqlInt(agent.y)]});
 	Interp.Fact({name = "env"; params = [CEqlAgent(env)]})]
@@ -202,7 +223,7 @@ let my_loc_db agent all env =
 	      Interp.Fact({name = "agent"; params = [CEqlAgent(other.db)]}))
 	      (List.filter (fun a -> a != agent) all)))
 ;;
-
+(* simulation function*)
 let simulation envDB agents =
   let rec loop i agents =
     let sGen_size=query envDB (ref []) "size" 2 in
@@ -224,7 +245,7 @@ let simulation envDB agents =
 	    else loop (i+1) new_agents
   in loop 1 agents
 ;;
-(* print_file i record; *)
+
 
 let load_agent db_loc =
   match db_loc with
@@ -234,11 +255,13 @@ let load_agent db_loc =
 	  {x=1; y=1; sym = (String.get c 0); db = Interp.parseDB(program)}
 ;;
 
+(*load database of rules and facts for a single agent*)
 let load_db db_loc =
   let lexbuf1 = Lexing.from_channel (open_in db_loc) in
   let program = Parser.program Scanner.token lexbuf1 in
     {x=1; y=1; sym = 'x'; db = Interp.parseDB(program)}
 ;;
+
 
 let get_agent_locs db = 
   let rec gal_int res = 
@@ -261,4 +284,3 @@ let _ =
 	simulation envDB.db agentDBs
 ;;
 
-(*query grid size; different part of the prgram for environment and agent*)
