@@ -62,8 +62,10 @@ scanner.cmo: parser.cmi
 scanner.cmx: parser.cmx
 simulator.cmo: scanner.cmo parser.cmi interp.cmo ast.cmi
 simulator.cmx: scanner.cmx parser.cmx interp.cmx ast.cmi
-tprinter.cmo: ast.cmi
-tprinter.cmx: ast.cmi
+tprinter.cmo: tst.cmi ast.cmi
+tprinter.cmx: tst.cmi ast.cmi
+tprint.cmo: trans.cmo tprinter.cmo scanner.cmo parser.cmi
+tprint.cmx: trans.cmx tprinter.cmx scanner.cmx parser.cmx
 trans.cmo: tst.cmi ast.cmi
 trans.cmx: tst.cmi ast.cmi
 parser.cmi: ast.cmi
