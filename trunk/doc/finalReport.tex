@@ -811,11 +811,49 @@ different behaviors.
 \section{Test Plan}
 
     * Show two or three representative source language programs along with the target language program generated for each
-    * Show the test suites used to test your translator
     * Explain why and how these test cases were chosen
-    * What kind of automation was used in testing
+
+\subsection{Testing Script}
+The python script shown in listing \ref{test} is used to run our
+tests.  Each test can be one of three different types: a parsing test,
+an interpreter test, or a full simulation test.
+
+\lstset{caption=Testing Script,label=test}
+\lstinputlisting{../src/test.py}
+
+\subsection{Testing Results}
+As of the writing of this report, the testing results are shown
+below.  Each of the test inputs and outputs can be found in the test
+cases appendix.
+
+\begin{verbatim}
+Running tests/andTest.ul                   ...OK
+Running tests/facts.ul                     ...OK
+Running tests/learnForget1.ul              ...OK
+Running tests/main.ul                      ...OK
+Running tests/main_fall_through.ul         ...OK
+Running tests/mult-main.ul                 ...OK
+Running tests/neq.ul                       ...FAIL!
+Running tests/not1.ul                      ...OK
+Running tests/plist-twice.ul               ...OK
+Running tests/printer_test.ul              ...OK
+Running tests/prsimple.ul                  ...OK
+Running tests/prstrings.ul                 ...OK
+Running tests/range.ul                     ...OK
+Running tests/sim_dot1.ul                  ...OK
+Running tests/sim_dot2.ul                  ...OK
+Running tests/sim_my_loc.ul                ...OK
+Running tests/sim_ndot2.ul                 ...OK
+Running tests/sim_two_test.ul              ...OK
+Running tests/simulator_test.ul            ...OK
+Running tests/sprint1.ul                   ...OK
+\end{verbatim}
+
+
+\section{Lessons Learned}
 
 \singlespace
+
 \appendix
 \section{Appendix: Test Cases}
 \include{tests}
