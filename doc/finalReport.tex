@@ -447,18 +447,6 @@ Agent Program:
 
 \section{Language Reference Manual}
 
-C$\mu$LOG is a logic language designed for entity interaction
-simulation.  It uses a syntax similar to C, making it easier on the
-typical programmer's eyes, and already integrates with some code
-tools, such as code indenters.  One uses the language to provide a set
-of facts and rules, and the ``program'' is run by asking a question,
-which the interpreter attempts to answer using inference based on the
-fact and rule set.  C$\mu$LOG is designed for simulation, so typically
-a simulator will ask a given agent program what it's next action will
-be.  The agent program then uses C$\mu$LOG's entity interaction
-features to gather information about it's environment and decide what
-to do.
-
 \subsection{Lexical}
 \begin{verbatim}
 [' ' '\t' '\r' '\n'] WS
@@ -476,16 +464,15 @@ to do.
 '*'      TIMES
 '/'      DIVIDE
 "=="     EQ
-"!="     NEQ
 '<'      LT
 "<="     LEQ
 ">"      GT
 ">="     GEQ
 '@'      AT
 '.'	 DOT
-'['      ARROPEN
-']'      ARRCLOSE
 '"'      QUOTE
+'?'      QUESTION
+'!'      NOT
 '$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Variable
 ['0'-'9']+ Number
 ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Identifier
@@ -508,7 +495,7 @@ Example:
 Grammar:
   Fact -> Identifier ( ParamList );
   ParamList -> Param | ParamList , Param
-  Param -> Variable | Number | String | Array
+  Param -> Variable | Number | String | Identifier
 \end{verbatim}
 
 \subsection{Rules}
@@ -578,14 +565,16 @@ Grammar:
 \end{verbatim}
 
 \subsection{Statements}
-Statements are boolean qualifiers which are used inside of blocks.  They can be any one
-of three types: comparisons, evaluations, or blocks. Comparisons are used to constrain variables.
-N-ary comparisons are supported.  Only values of the same type can be compared, and certain
-comparisons only work on certain types, so comparisons can be used to constrain variables by 
-type.  Evals are used to query the program, and have a similar syntax as facts.  They can be thought
-of as a branch in the solution search.  Blocks are considered a statement to support sub-blocks.
-They are evaluated and the reduced result is used.  Comparisons and evals are both terminated
-by semicolons.
+Statements are boolean qualifiers which are used inside of blocks.
+They can be any one of three types: comparisons, evaluations, or
+blocks. Comparisons are used to constrain variables.  Only values of
+the same type can be compared, and certain comparisons only work on
+certain types, so comparisons can be used to constrain variables by
+type.  Evals are used to query the program, and have a similar syntax
+as facts.  They can be thought of as a branch in the solution search.
+Blocks are considered a statement to support sub-blocks.  They are
+evaluated and the reduced result is used.  Comparisons and evals are
+both terminated by semicolons.
 
 \begin{verbatim}
 Examples:
@@ -602,75 +591,43 @@ Grammar:
   ComparisonOp -> EQ | NEQ | LT | LEQ | GT | GEQ
 \end{verbatim}
 
-\subsection{Expressions}
-Expressions are used to modify values being passed into comparisons or evals.  They are
-used to modify integers, and supports plus, minus, times, and divide.  Typical infix
-notation and precedence rules are used, and expressions can be grouped with parenthesis.
+\subsection{Comparisons}
+Expressions are used to constrain variables.  One side of the
+comparison must be a variable, and the other a constant.  Depending on
+the type of the constant, only certain comparisons are allowed.
 
 \begin{verbatim}
 Examples:
-  $r - 10 < $X < $r + 10;  // A comparison: $r - 10 and $r + 10 are the expressions
-  range($X, $Y, $r / 3);   // An eval- $r / 3 is the expression here
+  $r < 10;  // a comparison
 
 Grammar:
+  Comparison -> Expression CompOp Expression
+  CompOp -> EQ | LT | LEQ | GT | GEQ
   Expression -> Number | String | Variable | Expression Op Expression | ( Expression )
   Op -> PLUS | MINUS | TIMES | DIVIDE
 \end{verbatim}
 
 \subsection{Types}
-The following types are supported: integers, strings, arrays, symbols, and entities.
-Strings in C$\mu$LOG are currently atomic, so no string processing such as splitting,
-joining, or searching is supported.  They are primarily used for interaction with the
-rest of the system (printing, specifying files, ect.).  Arrays are discussed in detail
-in the next section.  Symbols are simply identifiers.  They share the same namespace as rule
-and fact names, and can only be compared with equals and not equals.  Entities are used
-to represent other programs (typically agents) and are used for interaction.  In addition
-to equals and not equals comparison operators, they support the dot operator for interaction
-(discussed later.)
-
-\subsection{Arrays}
-Arrays in C$\mu$LOG behave similarly to functional lists, and are matched similiarly as well.
-They are delimited by [ and ], and elements are comma separated.  The null list (also the tail
-of the list) is denoted by [].  Any number of elements of the array are matched inside of
-fact and rule declarations.  Arrays only appear as fact and rule parameters.
-The last element listed in [] is an array, and represents the tail of the list.  If the
-elements listed before the last element comprise the entire list, the last element will be
-simply [].
-
-\begin{verbatim}
-Examples:
-  //A set of rules which ensures that all elements are less than $v
-  lessThan($v, [$head, $tail]) { $head < $v; lessThan($v, $tail); }
-  lessThan(?, []);
-
-  //Matches the list (1, 4, 6)
-  foo([1, 4, 6, []]);
-
-  //Invalid
-  foo([1, 4, 6]);
-
-  //Prepends $v to array $a
-  prepend($v, $a, [$v, $a]);
-
-  //Constructs a list
-  list($a, $b, [$a, $b, []]);
-
-Grammar:
-  Array -> [ ArrayElems ]
-  ArrayElems -> ArrayElem | ArrayElem ArrayElems
-  ArrayElem -> Number | String | Variable | []
-\end{verbatim}
+The following types are supported: integers, strings, symbols, and
+entities.  Strings in C$\mu$LOG are currently atomic, so no string
+processing such as splitting, joining, or searching is supported.
+They are primarily used for interaction with the rest of the system
+(printing, specifying files, ect.).  Symbols are simply identifiers
+and can only be compared with equals.  Entities are used to represent
+other programs (typically agents) and are used for interaction.  In
+addition to equals and not equals comparison operators, they support
+the dot operator for interaction (discussed later.)
 
 \subsection{Directives}
-C$\mu$LOG supports a special syntax for interpreter directives.  This allows programs to
-interact with the interpreter while avoiding symbol collisions. The syntax is similar
-to that of a fact's, but an at sign (@) is prepended. Four directives are currently planned:
-attach, print, learn, and forget.  Attach is used to include code from another C$\mu$LOG file.
-Print is used to output strings, and results of searches during runtime.  Learn and forget
-are discussed in the next section.
+C$\mu$LOG supports a special syntax for interpreter directives.  This
+allows programs to interact with the interpreter while avoiding symbol
+collisions. The syntax is similar to that of a fact's, but an at sign
+(@) is prepended. Three directives are currently supported:
+print, learn, and forget. Print is used to output strings, and results of
+searches during runtime.  Learn and forget are discussed in the next
+section.
 \begin{verbatim}
 Examples:
-  @attach("geometry.ul");
   @print("Hello, world!");
 
 Grammar:
@@ -678,20 +635,22 @@ Grammar:
 \end{verbatim}
 
 \subsection{Program Modification}
-The two directives learn and forget are used to modify a program at runtime.  This
-is the only way in which C$\mu$LOG supports non-volatile storage.  Learn is used to
-add a fact to a program, and forget is used to remove a fact.  The synatax for these
-two directives is special, consisting of the usual directive syntax, except contained
-inside the parenthesis is a fact definition.  Any non-anonymous variables in this fact
-definition are filled in with solutions found for those variables, and the learn or
-forget is ``executed'' once for each solution.  They are similar to Prolog's assert and retract.
+The two directives learn and forget are used to modify a program at
+runtime.  This is the only way in which C$\mu$LOG supports
+non-volatile storage.  Learn is used to add a fact to a program, and
+forget is used to remove a fact.  The synatax for these two directives
+is special, consisting of the usual directive syntax, except contained
+inside the parenthesis is a fact definition.  Any non-anonymous
+variables in this fact definition are filled in with solutions found
+for those variables, and the learn or forget is ``executed'' once for
+each solution.  They are similar to Prolog's assert and retract.
 \begin{verbatim}
 Examples:
   @learn( wall(4,5); );  //Remember that there is a wall at (4,5)
   @forget( agent(8, 10); ); //Forget about the agent at (8, 10)
 
 Grammar:
-  Directive -> @ (learn|forget) ( Fact ); 
+  Directive -> @ (learn|forget) ( Fact List ); 
 \end{verbatim}
 
 
@@ -718,42 +677,9 @@ Grammar:
   Dot -> Variable . DotOp | Identifier . DotOp
 \end{verbatim}
 
-\subsection{Example Code}
-Several examples are now given.  They are not complete, and only intended
-to give a gist of the language's syntax and semantics.
-
-The environ1.ul program defines a 15x15 grid as well as several wall locutions.
-The simulator doesn't know anything about a ``wall'' or a ``goal'', but gets
-symbols for each grid point by solving the ``object'' rule.  The environment
-interacts with the simulator primarily via the object rule.  The ``repr'' rule
-is also used to tell the simulator what file should be associated with each
-symbol.  This file could be an image (to display on the grid) or an agent program
-to run, starting in that grid.
-
-The agent1.ul program is a pretty simple program which attempts to reach the ``goalObject''
-without running into anything else. To do this, it uses very simple graph-search 
-algorithms to find a valid path to the goalObject, or--alternatively--a grid square
-which it has not been to yet.  This sort of searching algorithm is very simple in
-C$\mu$LOG due to it's logical nature.  Indeed, it depends on the simple search 
-which is used internally to solve programs.  The agent also attempts to communicate it's 
-knowledge of the environment to any other agents it encounters.
-
-
-\begin{program}
-\begin{multicols}{2}
-\sourceinput{samples/environ1.ul}
-\end{multicols}
-\caption{A sample C$\mu$LOG environment programming}
-\end{program}
-
-\begin{program}
-\begin{multicols}{2}
-\sourceinput{samples/agent1.ul}
-\end{multicols}
-\caption{A sample C$\mu$LOG agent}
-\end{program}
-
 \section{Project Plan}
+
+We're cowboys--we don't have a friggin' plan!
 
 \subsection{Responsibilities}
 
@@ -761,11 +687,11 @@ It was the responsibility of each team member to complete and help
 complete the individual parts of the interpreter. Specifically,
 initially the scanner and parser were developed by Devesh Dedhia and
 Nishant Shah. The AST file was done by Cheng Cheng. The interpreter
-and translator were completed by John Demme. Nishant Shah Cheng Cheng
-developed the simulator together. Testing each phase and testing the
-whole system was not assigned to any particular person as it requires
-as much man power available. So testing was done by every group
-member.
+and translator were completed by John Demme. Nishant Shah and Cheng
+Cheng developed the simulator together. Testing each phase and testing
+the whole system was not assigned to any particular person as it
+requires as much man power as available. Testing was done by every
+group member.
 
 \subsection{Timeline}
 
@@ -797,23 +723,18 @@ every section was up and running by Nov 15th, i.e. by then we were
 able to print "hello world" in our language. After that we have been
 adding features and for that support is needed on every level,
 including the scanner, parser, ast file, translator, interpreter and
-the simulator. So all members have been simultaneously working on the
+the simulator.  All members have been simultaneously working on the
 development and also testing the features at the same time.
-
 
 \subsection{Software Development Environment}
 The project will be developed on Ubuntu using Objective Caml
-3.1.0. The scanner will be developed using Ocamllex v3.1.0. The parser
-will be developed using Ocamlyacc v3.1.0. We will use Python to run
-our tests and compare it with the expected output. Version
-control,managing multiple revisions of files, not only program source
-files, but any type of files will be done using SVN, a concurrent
-sucessor of CVS. We will use Google Code for issue tracking and Google
-groups("pltsim") for communicating within ourselves. Even the TA,
-Rajesh Venkataraman is a member of the group.
-
-
-
+3.1.0. The scanner was developed using Ocamllex v3.1.0. The parser was
+developed using Ocamlyacc v3.1.0. We will use Python to run our tests
+and compare it with the expected output. Version control,managing
+multiple revisions of files, not only program source files, but any
+type of files is done using Subversion. We are using Google Code for
+issue tracking and Subversion hostin, plus Google groups("pltsim") for
+communicating within ourselves.
 
 \section{Architecture}
 
@@ -821,62 +742,71 @@ The language C$\mu$LOG we have designed will be used for communication
 between agents and an environment, as well as to determine behavior of
 said entities. Every agent program communicates with the environment
 program through a simulator. The simulator runs a C$\mu$LOG logic
-solver and interpreter which functions on a set of rules defined and
-modified by the environment and agents then provides solutions
-representing the actions to be taken by the agents.
+solver and interpreter which functions on a set of rules and facts
+defined and modified by the environment and agents then provides
+solutions representing the actions to be taken by the agents.
 
+\begin{figure}[htp]
+\label{block}
+\caption{ Architecture Block Diagram }
+\begin{center}
+\includegraphics[scale=.6]{block.png}
+\end{center}
+\end{figure}
 
-[figure]
+The cmulog interpreter consists of several major blocks: scanner,
+parser, translator and interpreter. The relationship between these
+components is demonstrated in figure *.  The simulator loads each
+program by reading in each necessary ``.ul'' file through the scanner
+and parser, resulting in an AST.  The each AST is then passed into the
+interpreter, resulting in a database of rules and facts in the
+interpreter's internal format.  The interpreter does not operator
+directly out of the AST, however: it uses the translator to convert
+the AST to a ``translated synatax tree'' (TST) first.  
 
-The cmulog interpreter consists of several major blocks which are
-common in interpreter designs: scanner, parser,translator and the
-interpreter. The relationship between these components is demonstrated
-in Figure *. The input to the translator* are motion simulation speci
-cation files with a *.ul format and the final output of the form the
-translator would be a bunch of files showing the simulation results in
-ascii format. The translator takes one or more files at a time,
-depending on the number of agents and also the type of environment. We
-have created the whole translator in Ocaml and used Ocamllex for
-making the scanner and Ocamlyacc to make the parser.
-
-[figure]
-
-The translator is a unique feature added to make the working of the
-interpreter fast, easy and elegant. The translator accepts the
-abstract syntax tree(ast) and converts it into a translated syntax
-tree (tst). This conversion, though not a neccesity is done to ease
-the interpreting process. The translator removes all the variable
-names and indexes them to a list and then each of them are identified
-by the number rather than the name. An array would seem like the ideal
-option here, but lists are easy to handle in Ocaml and hence we have
-used them. It also seperates all the statement with and without
+While the AST directly represents the structure of a C$\mu$LOG, there
+are a number of static transformations which do not change the meaning
+of the program, but make interpreting it much easier for the
+interpreter.  The TST represents a simplier version of the program.
+The translator removes all the variable names and indexes them to a
+list and then each of them are identified by the number rather than
+the name.  It also partitions all the statements with and without
 side-effects and runs all the ones without side-effects once for each
-solution. It performs all possible arithmetic to reduce each
-statement into its simplest form. It brings the unknown variable to
-the leftmost side by making all the necessary changes. For eg:
-$(3+4>\$x-1$) will reduce to ($\$x<6$). Lastly, all the static semantic
-checking is also done in the translator.
+solution. It performs all possible arithmetic to reduce each statement
+into its simplest form. It brings the unknown variable to the leftmost
+side by making all the necessary changes. For $(3+4>\$x-1$) will
+reduce to ($\$x<6$). Lastly, all the static semantic checking is also
+done in the translator.
 
+Using the database reference returned from the interpreter to the
+simulator, the simulator (or any other program for that matter) can
+query the database using the interpreter's ``query'' method, passing
+in the name to query, and the number of parameters.  From this query
+method, the solution solver lazily evaluates the query by returning
+either ``NoSolution'' or ``Solution''.  ``NoSolution'' indicates the
+all the results have already been returned.  ``Solution'' is composed
+of a list of constraints (one per parameter) and a function to
+generate the next solution.  Each solution is computed when the next
+function is called, so if there are an infinite number of solutions,
+the query function will not block forever.  The caller may iterate
+through all of the solutions, or use only the first one.
 
-When the input file is run on the simlulator, it invokes the scanner
-that produces the various tokens. These tokens are fed to the parser
-which produces the abstarct sytax tree and passes it onto the
-simulator. Now the simulator takes the ast and invokes the 'translate'
-function of the translator through the interpreter. The interpreter is
-invoked with the ast file. The interpreter inturn passes this ast to
-the translator to get the simplified version, the translated syntax
-tree, 'tst'. All this happen statically. Now as each statement of the
-program is executed, the simulator queries the intrepreter for a
-solution. The interpreter then provides  a reference to the database
-created, pointing to the solution. Simulator contains databases for
-each entity involved in the simulation. Now the interpreter just
-provides reference to the next solution on the database. When a learn
-or forget command are encountered, the reference to the database is
-changed to the refernce to the new database. These solutions are then
-simulated and next move of the entity is generated on a *.dat
-file. For every move a new file is created and thus each simulation
-move can be viewed seperately.
+Finally, the simulator uses the interpreter to query various terms for
+each turn, modifying its state and printing the output.  For instance,
+it queries ``wall'' with two parameters (for each coordinate) each
+turn, iterates through all of the solutions, and puts a wall at each
+solution.  For each agent, it queries the ``move'' term and uses only
+the first solution to move each agent.  Before the first move, the
+simulator even queries the environment for the ``agent'' term to get
+the location of the agent program and its symbol!
 
+Other programs such as the stand-alone ``culog.ml'' interpreter use
+the same interpreter interface to parse programs into databases and
+query these programs using different terms to invoke different
+behaviors.  The stand-alone interpreter queries and ``main'' term and
+iterates through the results, and is generally used for testing of the
+interpreter.  Other programs could use their own terms to generate
+different behaviors.
 
 \section{Test Plan}
 
