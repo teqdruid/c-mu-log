@@ -1,0 +1,931 @@
+%  Written for Columbia COMS4115, fall 2008
+\documentclass[onecolumn,titlepage]{article}
+\usepackage[pdftex]{graphicx}
+\usepackage{fullpage}
+\usepackage{moreverb}
+\usepackage{multicol}
+\usepackage{hyperref}
+\usepackage{setspace}
+\usepackage{listings}
+
+\hypersetup{
+    bookmarks=true,         % show bookmarks bar?
+    unicode=false,          % non-Latin characters in Acrobat’s bookmarks
+    pdftoolbar=true,        % show Acrobat’s toolbar?
+    pdfmenubar=true,        % show Acrobat’s menu?
+    pdffitwindow=true,      % page fit to window when opened
+    pdfborder={0 0 0},
+    pdftitle={CuLOG},    % title
+    pdfnewwindow=false,      % links in new window
+    colorlinks=true,       % false: boxed links; true: colored links
+    linkcolor=black,          % color of internal links
+    citecolor=black,        % color of links to bibliography
+    filecolor=blue,      % color of file links
+    urlcolor=blue           % color of external links
+}
+
+\lstset{numbers=left, numberstyle=\small, stepnumber=1}
+\lstset{commentstyle=\textit, captionpos=tb, frame=TB}
+
+\onehalfspace
+
+
+\def\sourcetabsize{4}
+\newenvironment{sourcestyle}{\begin{scriptsize}}{\end{scriptsize}}
+\def\sourceinput#1{\par\begin{sourcestyle}\verbatimtabinput[\sourcetabsize]{#1}\end{sourcestyle}\par}
+
+\usepackage{float}
+ 
+\floatstyle{ruled}
+\newfloat{program}{thp}{lop}
+\floatname{program}{Program}
+
+
+\begin{document}
+\title{C$\mu$LOG Project Final Report\\\small{An Entity Interaction Simulation Language}}
+\author{John Demme (jdd2127)\\Nishant Shah (nrs2127)\\Devesh Dedhia (ddd2121)\\Cheng Cheng (cc2999)
+\\ \\Columbia University}
+
+\maketitle
+
+\section{Introduction: C$\mu$LOG}
+
+C$\mu$LOG is a logic language designed for entity interaction
+simulation. It uses a brute force method for solution searching similar
+to Prolog but uses a syntax similar to C, making it easier on the
+typical programmer's eyes, and is compatible with some code
+tools, such as code indenters and Emacs's c-mode.
+
+Simulations in
+C$\mu$LOG involve a set of entities written in C$\mu$LOG which
+interact in the simulator.  The ``environment'' entity defines the
+board on which the ``agents'' play, and defines the game which the
+entities play.  It is a turn-based simulation during which each agent
+can look at the contents of the environment and decide which which
+direction it should move.  During this decision, the agents can modify
+their own working memory, thus affecting their decision for the next
+turn.
+
+Additionally, the C$\mu$LOG interpreter may be invoked separately from
+the simulator.  The stand-alone interpreter searches for all the
+solutions for ``main'', but typically the output of these programs
+will be from ``print'' directives specified in the program.
+
+\subsection{Application \& Features}
+
+One uses the language to provide a set of facts and rules, and the
+program is run by asking a question, which the interpreter attempts
+to answer using inferences based on the fact and rule set. C$\mu$LOG is
+designed for simulation, so typically a simulator will ask a given
+agent program what it’s next action will be. The agent program then
+uses C$\mu$LOG’s entity interaction features to gather information about
+it’s environment and decide what to do. Each agent program can
+communicate with other programs to find out more information about
+other agents or its own status in the environment. The simulator stores
+all the contextual information pertaining to the environment and all
+of the agents present.
+
+As this language is going to be used for simulating real life agents,
+we strongly emphasize that the program learn and forget
+data/rules/information at run-time. For this, similar to ``assert'' and
+``retract'' of Prolog we have introduced two directives called ``learn''
+and ``forget.'' In C$\mu$LOG there exist no specific data structures like
+you would see in Java or Python, however rules and facts can be added
+to the program dynamically, which allows programs to remember data in
+a much more natural way since the data simply becomes part of the
+running code. 
+
+The simulator discussed could be modified to be used in other
+with other simulation environments, such as in a three-dimensional grid
+simulation with several agents--such as a flight simulation. Alternatively,
+the interpreter could be used in a real environment like the movement
+of pick and
+place robots in a warehouse. The language could be used to define the
+warehouse environment and agent programs for robots, and a replacement
+for the simulator would feed live information in to the programs in
+the form of facts, similarly to how the simulation feeds its state
+information to agents now.
+
+\subsection{Goals}
+
+The language and simulator presented here attempts to fulfill the
+following requirements:
+\begin{description}
+  \item[Generic] Games are defined mostly by the environment
+    application.
+    
+  \item[Composable] Individual behaviors can be written simply and
+    easily, then combined to obtain high-level actions and reasoning
+    
+  \item[Declarative] Programmers can specify what they want
+    entities to do rather than how
+
+  \item[Controlled Communication] Data in the system is frequently
+    made up of nearly-atomic bits of data many of which can be used
+    both on their own and composed as complex data. This means that
+    subsets and smaller pieces of data can be communicated between
+    entities without loosing meaning.
+
+  \item[High-level libraries] Due to the flexibility and composibility
+    of the language, high-level
+    algorithms–-such as path finding–-can be easily implemented in
+    libraries, allowing further, domain-specific intelligence to be
+    written in the programs.
+\end{description}
+
+\section{Tutorial}
+
+Logic programming is a kind of computer programming using mathematical
+logic. Specifically, it is based on the the idea of applying a
+theorem-prover to declarative sentences and deriving
+implications. Compared with procedural languages, logic programming
+solves the problem by setting rules with which solutions must fit. We
+can represent logic programming by the formula:
+
+$Facts + Rules = Solutions$
+
+Logic programming languages are inherently high level
+languages, allowing programmers to specify problems in a declarative
+manner, leaving some or all of the details of solving the problem to
+the interpreter. 
+
+Both the programming and data
+structures in both prolog and C$\mu$LOG can be very simple- such as
+facts. The relationship between code and data is also of note. C$\mu$LOG
+uses the Von Neumann style (vs. Harvard architecture) wherein data is
+code. It is therefore possible (and inherently necessary) for programs
+to be introspective and self-modifying. In other words, it is easier
+for programs to learn and adapt.
+
+
+\subsection{Variables}
+Variables represent a value to be solved for. They don't have a fixed
+datatype, but match to the refered type. All variables are scoped to
+the rule, so that variable solutions can be shared between sub-blocks.
+
+Variables are represented by a dollar sign (\$) then the variable
+name. The name must start with a letter, and is composed of letters,
+numbers, and underscores. There is a special variable called the
+anonymous variable which is represented simply by a question mark (?).
+
+
+\begin{verbatim}
+Example variable names:
+   \$foo  \$bar\_  \$f1o2o3
+\end{verbatim}
+
+\begin{verbatim}
+The following are not valid variables:
+  foo  \$\_foo  \$1bar
+\end{verbatim}
+
+\subsection{Statements}
+
+These are conditional statements which give output as true or false
+only and are frequently used to constrain variables. They are of two
+types, comparison and evaluation statements.
+
+Comparison statements are used to compare variables against constants:
+
+\begin{verbatim}
+Example comparisons:
+  \$a>1+3-4; //means that variable 'a' is always greater than 0
+  \$boo <= 5; // means that variable 'boo' is less than or equal to 5
+\end{verbatim}
+
+Evaluation or eval statements are used to query the program for solutions:
+
+\begin{verbatim}
+  boofar(\$s,\$d,7); //from all the possible matches in the program's
+     //graph it returns various possible values for the pair s and d,
+     //and constrains those values in their scope appropriately, as 
+     //defined by the block in which the statement is contained
+\end{verbatim}
+
+\subsection{Facts}
+
+Facts are terminal nodes of the solution search which are always
+true. Facts help us define constant information in the program like
+the position of a wall.
+
+\begin{verbatim}
+Syntax: id(parameter1, parameter2 ....);
+
+Examples:
+  wall(2,3);  //This means that a wall is defined for 2 and 3
+
+  fire(4,a); //Symbols like 'a' can also be a parameter.
+             // Here, fire of 4 and 'a' evaluates to be true.
+\end{verbatim}
+
+
+\subsection{Rules}
+Rules are similar to facts, but are only conditionally true. These
+conditions are defined inside a block. The defination or declaration
+of rules suggests that the solution tree is about to branch out to
+search for new solutions.
+
+
+\begin{verbatim}
+  syntax: id(parameter1, parameter2....) {conditions}
+\end{verbatim}
+
+The block is "{conditions}" in the above syntax. Block can be of 2
+types, namely 'AND' and 'OR' block. AND blocks evalute true iff all
+the conditions inside the block are true. Similarly, the OR block is
+true if any one of the conditions is true. If no reduction method is
+specified (i.e. AND or OR is written), by default AND is used.
+
+To define a OR block we use the following construct:
+
+\begin{verbatim}
+  {OR:
+    foo();
+    bar();
+  }
+\end{verbatim}
+
+The AND block is written similarly:
+
+\begin{verbatim}
+  wall(2,3) {AND:
+    foo();
+    bar();
+    {OR: barfoo(); foobar();}
+  }
+\end{verbatim}
+
+Here ``{OR: barfoo(); foobar();}'' is a sub-block. wall(2,3) is
+true if foo() and bar() are true and if either of barfoo() or foobar()
+are true.
+
+\subsection{Directives}
+Three interpreter directives are supported; print, learn and
+forget. print is used to output strings and results during
+runtime. the learn and forget directives are used for database
+modification. They function similar to assert and retract of prolog.
+
+\begin{verbatim}
+Syntax: @directive_name(parameters);
+
+Example:
+     //prints "hello world: " then whatever constraints exist on $foo
+  @print("hello world:", $foo);
+
+    //adds a fact to the database that 'fire' is true for 4,5
+  @learn(fire(4,5););
+
+    //erases the fact from the database that tree is true for 3,9.
+  @forget(tree(3,9););
+\end{verbatim}
+
+\subsection{Simulator}
+
+Now for the user to be able to run a simulation or play a game in
+C$\mu$, they will have to use a simulator which interacts with the
+logic engine of the langauge to produce required results. For
+demonstration we have done so already. This simulator defines a class
+of games or simulations described as follows:
+
+The environment is grid based and defined by a C$\mu$LOG program. It
+potentially includes obstacles and a goals which the agent must reach,
+however the game is defined mostly by the environment
+program. Every object (i.e. agents, walls, switches, goals) in the
+environment is defined by grid positions. The environment specifies
+the representations of the entities to the simulator. The simulator
+re-evaluates the various object rules during each turn when it renders the
+grid, so the contents of the grid can be dynamically defined based on
+the state of the simulation or the contents of the program (which can
+be changed by the program.) For example based on the grid position of
+the agent the environment might remove or insert a wall. The agent
+program decides the next move based on previous moves and obstacle
+data.
+
+The simulation of the agent program is also turn based. Each time the
+agent makes a move it sends its new coordinates to the simulator. The
+new coordinates become part of the simulation's state which are
+exposed to the environment when it is solved to render the scene.
+
+\begin{verbatim}
+Example 1:
+  Size(5,5);  //defines the grid size of 5 by 5
+  wall(2,3);  //a fact where wall is present at coordinates 2,3 	
+  wall(4,2);
+  goal(3,3);  //a fact which defines the goal to be achieved by the player	
+
+  igo("UP");  //move($dir) would be true for all the values of $dir
+              // for which igo($dir) is true
+
+  move($dir){
+        //causes the interpreter to remove igo("UP") from its database.
+    @forget(igo($dir);); 
+
+        //Fetch the next movement 
+    igo($dir);
+  }
+
+The output of the above program is:
+X
+
+. . . . .
+. . . . .
+. | # . .
+x . . | .
+. . . . .
+\end{verbatim}
+
+
+In the above example, 'size', 'goal', 'wall' and 'move' are keywords
+for the simulator.  Size(5,5) defines the grid in which walls (shown by
+the pipe symbol) are placed at coordinates (2,3) and (4,2). A goal
+object (shown by \#) is placed at (3,3).  The game simulation ends when
+the agent either hits a wall, moves out of the grid or reaches the
+goal. 
+
+In order to run code through the simulator, put your code in a file
+with a ``.ul'' extension (this extension is a convention only) then
+invoke the simulator, passing it the name of your code file:
+
+\begin{verbatim}
+  ./simulator mySimulation.ul
+\end{verbatim}
+
+\subsection{Program Modification}
+
+Now let us look at example using one of our program modification
+directives.
+
+\begin{verbatim}
+Example 2:
+  size(5, 5);
+  wall(2, 3);
+  wall(4,2);
+  goal(3, 3);
+  imove("UP");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("UP");
+
+  move($dir) {
+    @forget1( imove($dir); );
+    imove($dir);        
+  }
+
+OUTPUT:
+
+  ==== Turn 1 ====
+  . . . . .
+  . . . . .
+  . | # . .
+  x . . | .
+  . . . . .
+
+  x: Moving RIGHT
+
+  ==== Turn 2 ====
+  . . . . .
+  . . . . .
+  . | # . .
+  . x . | .
+  . . . . .
+
+  x: Moving RIGHT
+
+  ==== Turn 3 ====
+  . . . . .
+  . . . . .
+  . | # . .
+  . . x | .
+  . . . . .
+
+  x: Moving UP
+
+  Simulation over: x wins!!!Successfully reach the goal at position (3,3)
+\end{verbatim}
+
+In the above code we see a carefully drafted route through the
+grid can make you win the game. Each step of the simulation is
+displayed. In this example, the 'imove' facts are used as a stack of
+moves which are queried for each turn, and removed from the stack
+after using it.  The ``@forget1'' directive shown in this example
+removes only one fact from the program instead of all the facts which
+match the pattern.
+
+\subsection{Breakout}
+
+Although we can define an agent's actions within the environment
+program, it is typically more desirable to specify a separate agent
+file so that multiple agents can operate in the same environment.  In
+the next example, we use a separate agent which queries the
+environment for the movements it should take--sort of like asking for
+directions.
+
+\begin{verbatim}
+Environment Program:
+  size(10, 10);
+  wall(?, 7);
+  goal(6, 6);
+
+  imove("UP");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+
+  agent("d", "tests/agents/delg_to_env.ul");
+
+Agent Program:
+  move($dir) {
+    @print($e, " says move ", $dir);
+    $e.@forget( imove($dir) );
+    env($e);
+    $e.imove($dir);
+  }
+\end{verbatim}
+
+
+\section{Language Reference Manual}
+
+C$\mu$LOG is a logic language designed for entity interaction
+simulation.  It uses a syntax similar to C, making it easier on the
+typical programmer's eyes, and already integrates with some code
+tools, such as code indenters.  One uses the language to provide a set
+of facts and rules, and the ``program'' is run by asking a question,
+which the interpreter attempts to answer using inference based on the
+fact and rule set.  C$\mu$LOG is designed for simulation, so typically
+a simulator will ask a given agent program what it's next action will
+be.  The agent program then uses C$\mu$LOG's entity interaction
+features to gather information about it's environment and decide what
+to do.
+
+\subsection{Lexical}
+\begin{verbatim}
+[' ' '\t' '\r' '\n'] WS
+"/*"     OPENCOMMENT
+"*/"     CLOSECOMMENT
+"//"     COMMENT
+'('      LPAREN
+')'      RPAREN
+'{'      LBRACE
+'}'      RBRACE
+';'      SEMICOLON
+','      COMMA
+'+'      PLUS
+'-'      MINUS
+'*'      TIMES
+'/'      DIVIDE
+"=="     EQ
+"!="     NEQ
+'<'      LT
+"<="     LEQ
+">"      GT
+">="     GEQ
+'@'      AT
+'.'	 DOT
+'['      ARROPEN
+']'      ARRCLOSE
+'"'      QUOTE
+'$'['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Variable
+['0'-'9']+ Number
+['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* Identifier
+\end{verbatim}
+
+\subsection{Facts}
+Facts define factual relationships.  They have a very similar syntax to rules, except they
+have no code block to make them conditionally true.  Any query which matches a fact is simply
+true. Another way to think of facts is as terminal nodes in the solution search.
+
+Each fact is composed of a name, and a comma separated list of parameters, each of which may
+be a constant, or a variable.  Using any variable except the anonymous variable doesn't make
+much sense in a fact, but is allowable.
+\begin{verbatim}
+Example:
+  foo(4, symA);  //Foo of 4 and symA is always true
+  foo(4, symA, ?); //Foo of 4, symA, and anything (wildcard) is always true
+  wall(4, 5); //In an environment might mean: there is a wall present at (4,5)
+
+Grammar:
+  Fact -> Identifier ( ParamList );
+  ParamList -> Param | ParamList , Param
+  Param -> Variable | Number | String | Array
+\end{verbatim}
+
+\subsection{Rules}
+Rules define relationships which are conditionally true.  They are similar to facts, but
+instead of ending with a semicolon, they contain have a block, which defines the conditions
+upon which the rule should be evaluated as true.  Another way to think of a rules is as
+a node in the solution search which may branch, or be a leaf, depending on the contents
+of the condition block. Each rule is composed of a name, a comma separated list of parameters,
+and a block.
+
+\begin{verbatim}
+Example:
+  foo(4) { bar(5); }  //Foo of 4 is true if bar(5) is true
+  foo(4) { bar(6); }  //Foo of 4 is true if bar(6) is true
+The two above rules are together equivalent to:
+  foo(4) {OR: bar(5); bar(6); }
+
+Grammar:
+  Fact -> Identifier ( ParamList ) Block
+\end{verbatim}
+
+\subsection{Variables}
+Variables represent a value to be solved for.  During rule matching, they will match any
+value or type, but can be constrained in an associated block.  All variables are scoped to
+the rule, so that variable solutions can be shared between subblocks.
+Variables are represented by a dollar sign (\$) then the variable name. The name must
+start with a letter, and is composed of letters, numbers, and underscores.  There is a special
+variable called the anonymous variable which is represented simply by a question mark (?).  It
+cannot be referenced in the block, and simply matches anything.
+\begin{verbatim}
+Example:
+  foo($X, $y, $foo_bar, $bar9, ?) { }
+
+Grammar:
+  Variable -> $[a-zA-Z][a-zA-Z0-9_]* | ?
+\end{verbatim}
+
+\subsection{Blocks}
+Blocks contain a list of statements (conditions) to determine truth, and specify a reduction 
+method for those statements.  Each block will reduce all of its statements using the same
+reduction method (usually AND or OR), but may contain sub-blocks.  If the reduction method
+is omitted, AND is assumed.  The syntax allows for other reduction methods to be allowed
+(such as xor, or a user-specified method), however the language does not yet support this.
+\begin{verbatim}
+Examples:
+ { 
+    foo();
+    bar();
+ }
+ //True if foo and bar are both true.
+
+ {AND:
+    foo();
+    bar();
+ }
+ //True if foo and bar are both true.
+
+ {OR:
+    foo();
+    bar();
+ }
+ //True if foo or bar are true.
+
+Grammar:
+  Block -> { (Identifer:)? StatementList }
+  StatementList -> Statement | StatementList Statement
+\end{verbatim}
+
+\subsection{Statements}
+Statements are boolean qualifiers which are used inside of blocks.  They can be any one
+of three types: comparisons, evaluations, or blocks. Comparisons are used to constrain variables.
+N-ary comparisons are supported.  Only values of the same type can be compared, and certain
+comparisons only work on certain types, so comparisons can be used to constrain variables by 
+type.  Evals are used to query the program, and have a similar syntax as facts.  They can be thought
+of as a branch in the solution search.  Blocks are considered a statement to support sub-blocks.
+They are evaluated and the reduced result is used.  Comparisons and evals are both terminated
+by semicolons.
+
+\begin{verbatim}
+Examples:
+  1 < $X <= $Y < 10;  // A comparison
+  range($X, $Y, 7);   // An eval
+  !range($X, $Y, 7);   // This must not evaluate to true
+  {OR: $X > 10; $X < 0; }  //A sub-block with two binary comparisons
+
+Grammar:
+  Statement -> Block | Eval ; | Comparison ;
+  Eval -> (!)? Identifier ( ExprList );
+  ExprList -> Expression | ExprList , Expression
+  Comparison -> Expression ComparisonOp Expression | Expression ComparisonOp Comparison
+  ComparisonOp -> EQ | NEQ | LT | LEQ | GT | GEQ
+\end{verbatim}
+
+\subsection{Expressions}
+Expressions are used to modify values being passed into comparisons or evals.  They are
+used to modify integers, and supports plus, minus, times, and divide.  Typical infix
+notation and precedence rules are used, and expressions can be grouped with parenthesis.
+
+\begin{verbatim}
+Examples:
+  $r - 10 < $X < $r + 10;  // A comparison: $r - 10 and $r + 10 are the expressions
+  range($X, $Y, $r / 3);   // An eval- $r / 3 is the expression here
+
+Grammar:
+  Expression -> Number | String | Variable | Expression Op Expression | ( Expression )
+  Op -> PLUS | MINUS | TIMES | DIVIDE
+\end{verbatim}
+
+\subsection{Types}
+The following types are supported: integers, strings, arrays, symbols, and entities.
+Strings in C$\mu$LOG are currently atomic, so no string processing such as splitting,
+joining, or searching is supported.  They are primarily used for interaction with the
+rest of the system (printing, specifying files, ect.).  Arrays are discussed in detail
+in the next section.  Symbols are simply identifiers.  They share the same namespace as rule
+and fact names, and can only be compared with equals and not equals.  Entities are used
+to represent other programs (typically agents) and are used for interaction.  In addition
+to equals and not equals comparison operators, they support the dot operator for interaction
+(discussed later.)
+
+\subsection{Arrays}
+Arrays in C$\mu$LOG behave similarly to functional lists, and are matched similiarly as well.
+They are delimited by [ and ], and elements are comma separated.  The null list (also the tail
+of the list) is denoted by [].  Any number of elements of the array are matched inside of
+fact and rule declarations.  Arrays only appear as fact and rule parameters.
+The last element listed in [] is an array, and represents the tail of the list.  If the
+elements listed before the last element comprise the entire list, the last element will be
+simply [].
+
+\begin{verbatim}
+Examples:
+  //A set of rules which ensures that all elements are less than $v
+  lessThan($v, [$head, $tail]) { $head < $v; lessThan($v, $tail); }
+  lessThan(?, []);
+
+  //Matches the list (1, 4, 6)
+  foo([1, 4, 6, []]);
+
+  //Invalid
+  foo([1, 4, 6]);
+
+  //Prepends $v to array $a
+  prepend($v, $a, [$v, $a]);
+
+  //Constructs a list
+  list($a, $b, [$a, $b, []]);
+
+Grammar:
+  Array -> [ ArrayElems ]
+  ArrayElems -> ArrayElem | ArrayElem ArrayElems
+  ArrayElem -> Number | String | Variable | []
+\end{verbatim}
+
+\subsection{Directives}
+C$\mu$LOG supports a special syntax for interpreter directives.  This allows programs to
+interact with the interpreter while avoiding symbol collisions. The syntax is similar
+to that of a fact's, but an at sign (@) is prepended. Four directives are currently planned:
+attach, print, learn, and forget.  Attach is used to include code from another C$\mu$LOG file.
+Print is used to output strings, and results of searches during runtime.  Learn and forget
+are discussed in the next section.
+\begin{verbatim}
+Examples:
+  @attach("geometry.ul");
+  @print("Hello, world!");
+
+Grammar:
+  Directive -> @ Identifier ( ParamList ); 
+\end{verbatim}
+
+\subsection{Program Modification}
+The two directives learn and forget are used to modify a program at runtime.  This
+is the only way in which C$\mu$LOG supports non-volatile storage.  Learn is used to
+add a fact to a program, and forget is used to remove a fact.  The synatax for these
+two directives is special, consisting of the usual directive syntax, except contained
+inside the parenthesis is a fact definition.  Any non-anonymous variables in this fact
+definition are filled in with solutions found for those variables, and the learn or
+forget is ``executed'' once for each solution.  They are similar to Prolog's assert and retract.
+\begin{verbatim}
+Examples:
+  @learn( wall(4,5); );  //Remember that there is a wall at (4,5)
+  @forget( agent(8, 10); ); //Forget about the agent at (8, 10)
+
+Grammar:
+  Directive -> @ (learn|forget) ( Fact ); 
+\end{verbatim}
+
+
+\subsection{Interaction- The Dot Operator}
+If a variable or symbol represents another program (entity), then it supports
+the dot operator.  After appending a dot (.) to the reference, one can put
+an eval, a learn, or a forget, and that action will take place in the other
+entity's namespace.  This can be used to ask for information from another program
+(such as the environment program or another agent) or to modify the other
+program--perhaps to teach another agent, to trick a competitor, or to change
+the operating environment.  Future versions of C$\mu$LOG could likely support
+some sort of access rules in the destination program, allowing it to control who is
+allowed to access what data, and who is allowed to change its program, and how.
+These access rules could potentially modify any queries or changes, perhaps
+revealing an entirely fake namespace to the other agent.  Such access rules are
+beyond the scope of C$\mu$LOG initially, however.
+\begin{verbatim}
+Example:
+  $agent.@learn( wall(4,5); );  //Tell agent2 that there is a wall at (4,5)
+  env.view($X, $Y, $obj); //Query the environment, find out what is at ($X, $Y)
+
+Grammar:
+  DotOp -> Directive | Statement
+  Dot -> Variable . DotOp | Identifier . DotOp
+\end{verbatim}
+
+\subsection{Example Code}
+Several examples are now given.  They are not complete, and only intended
+to give a gist of the language's syntax and semantics.
+
+The environ1.ul program defines a 15x15 grid as well as several wall locutions.
+The simulator doesn't know anything about a ``wall'' or a ``goal'', but gets
+symbols for each grid point by solving the ``object'' rule.  The environment
+interacts with the simulator primarily via the object rule.  The ``repr'' rule
+is also used to tell the simulator what file should be associated with each
+symbol.  This file could be an image (to display on the grid) or an agent program
+to run, starting in that grid.
+
+The agent1.ul program is a pretty simple program which attempts to reach the ``goalObject''
+without running into anything else. To do this, it uses very simple graph-search 
+algorithms to find a valid path to the goalObject, or--alternatively--a grid square
+which it has not been to yet.  This sort of searching algorithm is very simple in
+C$\mu$LOG due to it's logical nature.  Indeed, it depends on the simple search 
+which is used internally to solve programs.  The agent also attempts to communicate it's 
+knowledge of the environment to any other agents it encounters.
+
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/environ1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG environment programming}
+\end{program}
+
+\begin{program}
+\begin{multicols}{2}
+\sourceinput{samples/agent1.ul}
+\end{multicols}
+\caption{A sample C$\mu$LOG agent}
+\end{program}
+
+\section{Project Plan}
+
+\subsection{Responsibilities}
+
+It was the responsibility of each team member to complete and help
+complete the individual parts of the interpreter. Specifically,
+initially the scanner and parser were developed by Devesh Dedhia and
+Nishant Shah. The AST file was done by Cheng Cheng. The interpreter
+and translator were completed by John Demme. Nishant Shah Cheng Cheng
+developed the simulator together. Testing each phase and testing the
+whole system was not assigned to any particular person as it requires
+as much man power available. So testing was done by every group
+member.
+
+\subsection{Timeline}
+
+The following were the timelines we decided on at the start of the
+semester:
+
+\begin{table}[h]
+\caption{Project Deadlines}
+\begin{center}
+  \begin{tabular}{|l|l|}
+    \hline
+    Language Features design	& Oct 20 \\
+    LRM				& Oct 22 \\
+    Scanner/Parser		& Nov 5  \\
+    Translator			& Nov 15 \\
+    Interpreter			& Nov 22 \\
+    Simulator			& Nov 27 \\
+    Cold Freeze			& Dec 12 \\
+    Testing                     & Dec 18 \\
+    \hline
+  \end{tabular}
+\end{center}
+\end{table}
+
+As we started working on the project, it was soon realized that the
+above deadline are not what our aim should be as, it is not a
+start-end process. The development process was more like evolution. So
+every section was up and running by Nov 15th, i.e. by then we were
+able to print "hello world" in our language. After that we have been
+adding features and for that support is needed on every level,
+including the scanner, parser, ast file, translator, interpreter and
+the simulator. So all members have been simultaneously working on the
+development and also testing the features at the same time.
+
+
+\subsection{Software Development Environment}
+The project will be developed on Ubuntu using Objective Caml
+3.1.0. The scanner will be developed using Ocamllex v3.1.0. The parser
+will be developed using Ocamlyacc v3.1.0. We will use Python to run
+our tests and compare it with the expected output. Version
+control,managing multiple revisions of files, not only program source
+files, but any type of files will be done using SVN, a concurrent
+sucessor of CVS. We will use Google Code for issue tracking and Google
+groups("pltsim") for communicating within ourselves. Even the TA,
+Rajesh Venkataraman is a member of the group.
+
+
+
+
+\section{Architecture}
+
+The language C$\mu$LOG we have designed will be used for communication
+between agents and an environment, as well as to determine behavior of
+said entities. Every agent program communicates with the environment
+program through a simulator. The simulator runs a C$\mu$LOG logic
+solver and interpreter which functions on a set of rules defined and
+modified by the environment and agents then provides solutions
+representing the actions to be taken by the agents.
+
+
+[figure]
+
+The cmulog interpreter consists of several major blocks which are
+common in interpreter designs: scanner, parser,translator and the
+interpreter. The relationship between these components is demonstrated
+in Figure *. The input to the translator* are motion simulation speci
+cation files with a *.ul format and the final output of the form the
+translator would be a bunch of files showing the simulation results in
+ascii format. The translator takes one or more files at a time,
+depending on the number of agents and also the type of environment. We
+have created the whole translator in Ocaml and used Ocamllex for
+making the scanner and Ocamlyacc to make the parser.
+
+[figure]
+
+The translator is a unique feature added to make the working of the
+interpreter fast, easy and elegant. The translator accepts the
+abstract syntax tree(ast) and converts it into a translated syntax
+tree (tst). This conversion, though not a neccesity is done to ease
+the interpreting process. The translator removes all the variable
+names and indexes them to a list and then each of them are identified
+by the number rather than the name. An array would seem like the ideal
+option here, but lists are easy to handle in Ocaml and hence we have
+used them. It also seperates all the statement with and without
+side-effects and runs all the ones without side-effects once for each
+solution. It performs all possible arithmetic to reduce each
+statement into its simplest form. It brings the unknown variable to
+the leftmost side by making all the necessary changes. For eg:
+$(3+4>\$x-1$) will reduce to ($\$x<6$). Lastly, all the static semantic
+checking is also done in the translator.
+
+
+When the input file is run on the simlulator, it invokes the scanner
+that produces the various tokens. These tokens are fed to the parser
+which produces the abstarct sytax tree and passes it onto the
+simulator. Now the simulator takes the ast and invokes the 'translate'
+function of the translator through the interpreter. The interpreter is
+invoked with the ast file. The interpreter inturn passes this ast to
+the translator to get the simplified version, the translated syntax
+tree, 'tst'. All this happen statically. Now as each statement of the
+program is executed, the simulator queries the intrepreter for a
+solution. The interpreter then provides  a reference to the database
+created, pointing to the solution. Simulator contains databases for
+each entity involved in the simulation. Now the interpreter just
+provides reference to the next solution on the database. When a learn
+or forget command are encountered, the reference to the database is
+changed to the refernce to the new database. These solutions are then
+simulated and next move of the entity is generated on a *.dat
+file. For every move a new file is created and thus each simulation
+move can be viewed seperately.
+
+
+\section{Test Plan}
+
+    * Show two or three representative source language programs along with the target language program generated for each
+    * Show the test suites used to test your translator
+    * Explain why and how these test cases were chosen
+    * What kind of automation was used in testing
+
+\singlespace
+\appendix
+\section{Appendix: Test Cases}
+\include{tests}
+
+\section{Appendix: Code Listings}
+
+\subsection{parser.mly}
+\lstset{caption=C$\mu$LOG Parser,label=parser}
+\lstinputlisting{../src/parser.mly}
+
+\subsection{scanner.mll}
+\lstset{caption=C$\mu$LOG Scanner,label=scanner}
+\lstinputlisting{../src/scanner.mll}
+
+\subsection{ast.mli}
+\lstset{language=Caml,caption=C$\mu$LOG AST,label=ast}
+\lstinputlisting{../src/ast.mli}
+
+\subsection{printer.ml}
+\lstset{language=Caml,caption=C$\mu$LOG AST Printer,label=printer}
+\lstinputlisting{../src/printer.ml}
+
+\subsection{tst.mli}
+\lstset{language=Caml,caption=C$\mu$LOG Translated Syntax Tree,label=tst}
+\lstinputlisting{../src/tst.mli}
+
+\subsection{trans.ml}
+\lstset{language=Caml,caption=C$\mu$LOG AST to TST Translator,label=trans}
+\lstinputlisting{../src/trans.ml}
+
+\subsection{culog.ml}
+\lstset{language=Caml,caption=C$\mu$LOG ``General Purpose'' Interpreter,label=culog}
+\lstinputlisting{../src/culog.ml}
+
+\subsection{simulator.ml}
+\lstset{language=Caml,caption=C$\mu$LOG Simulator,label=simulator}
+\lstinputlisting{../src/simulator.ml}
+
+\subsection{interp.ml}
+\lstset{language=Caml,caption=C$\mu$LOG Interpreter,label=interp}
+\lstinputlisting{../src/interp.ml}
+
+\end{document}
