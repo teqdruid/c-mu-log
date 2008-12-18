@@ -1,0 +1,8 @@
+//tests that fail in the trans.ml
+//comparisons of constants.
+// comparisons can only be made with atleast one variable.
+
+main()	{OR:
+	6=6;
+	symb1=symb2;
+	} 

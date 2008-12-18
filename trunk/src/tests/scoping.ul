@@ -1,0 +1,16 @@
+// test to demonstrate the local scoping of variables within a block
+
+foo($x,?){
+	$x>1;
+	$x<10;
+	}
+
+bar($x,?){$x>0;
+	$x<5;
+	}
+
+main(){
+	foo($x,$z);
+	bar($y,$d);
+	@print($x,"and",$y,$z);
+      }

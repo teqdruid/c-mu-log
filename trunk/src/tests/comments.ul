@@ -1,0 +1,5 @@
+/* comments */
+// C style comments have been included the support for '/*' '*/'
+//comments is directly in the scanner
+// while '//' comments are supported in the parser.
+

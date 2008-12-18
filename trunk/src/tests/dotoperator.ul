@@ -1,0 +1,19 @@
+// test for the dot operator
+
+wall(3,3);
+wall(2,1);
+wall(4,5);
+wall($X,$Y){$X>=10;
+	    $X<=15;	 
+	    $Y>=10;	
+	    $Y<=15;	
+	    }
+ 	 	
+main(){AND:
+//$env.view($X,$Y)
+@learn(wall(10,10););
+@forget(wall(3,3););
+wall($X,$Y);
+@print("(", $X, ",", $Y, ")");   
+}
+

@@ -1,0 +1,5 @@
+/*illegal character*/
+//!!!!
+//5;
+//fo(dfd)
+foo([]);

@@ -1,0 +1,12 @@
+  size(10, 10);
+  wall(?, 7);
+  goal(6, 6);
+  imove("UP");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+  imove("RIGHT");
+  agent("d", "tutorial_agent.ul");
+
+ 

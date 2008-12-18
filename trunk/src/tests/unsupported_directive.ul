@@ -1,0 +1,7 @@
+// directive that is not supported by the interpreter give an error in the intrep.ml 
+//currently only print learn and forget are supported.
+
+unsupported_directive(){
+			@dosomething();
+			}
+
