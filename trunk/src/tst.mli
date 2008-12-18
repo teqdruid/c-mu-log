@@ -3,6 +3,11 @@
   It is much easier for the interpreter to deal with, and is relatively
   easy to obtain given an AST.  The trans.ml module translates from the AST
   to this TST.
+
+  Copied and modified from ast.mli
+
+  Written by John Demme
+
 *)
 type param = 
     Lit  of int

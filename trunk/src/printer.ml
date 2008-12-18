@@ -1,9 +1,8 @@
 (*
 *  printer.ml
 *
-*
-*  Started on  Wed Nov  5 15:18:34 2008 John Demme
-*  Last update Wed Nov  5 16:05:31 2008 John Demme
+*  Originally written in group, typed by John Demme
+*  Updated as necessary by everyone
 *)
 
 open Ast

@@ -1,11 +1,19 @@
 (* simulator.ml
  * This is a simulator for entities interaction. 
  * Specifically, simulator comprises of two parts.
- * Simulator is divided into 2 parts, one for obataining information about agents and environment(grids) and simulate 
-   their behaviors and the other being output driver.
- * Original author: Cheng Cheng ( worked on communicating with interpreter and simulating the interaction)
- *                  Nishant Shah( worked on integrating the output driver with the simulator)
- * Support for loading multi-agents is added by John Demme
+ * Simulator is divided into 2 parts, one for obataining
+ * information about agents and environment(grids) and simulate 
+ * their behaviors and the other being output driver.
+ *
+ * Original authors:
+ *   Cheng Cheng 
+ *     (worked on communicating with interpreter and
+ *         simulating the interaction)
+ *   Nishant Shah
+ *     (worked on integrating the output driver with the simulator)
+ *
+ * Support for loading multiple agents and separating the programs
+ *   added by John Demme
  *)
 
 open Interp
