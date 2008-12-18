@@ -1,7 +1,7 @@
 (* Functions to modify the AST slightly 
    to make parsing it easier for the interpreter.
    
-   Static checking could happen here as well. 
+   Static checking happens here as well. 
 
    John Demme
 *)

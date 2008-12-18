@@ -48,6 +48,8 @@
 
 \maketitle
 
+\tableofcontents
+
 \section{Introduction: C$\mu$LOG}
 
 C$\mu$LOG is a logic language designed for entity interaction
@@ -809,12 +811,14 @@ different behaviors.
 \section{Test Plan}
 
 \subsection{Testing Script}
-The python script shown in listing 1 is used to run our
+The python script shown in listing \ref{testpy} is used to run our
 tests.  Each test can be one of three different types: a parsing test,
 an interpreter test, or a full simulation test.
 
+\singlespace
 \lstset{caption=Testing Script,label=testpy}
 \lstinputlisting{../src/test.py}
+\onehalfspace 
 
 \subsection{Test Case Rationale}
 Most of our test cases are written to test a specific feature.  For
@@ -859,6 +863,26 @@ Running tests/sprint1.ul                   ...OK
 \section{Lessons Learned}
 
 \subsection{From Devesh}
+Programming languages and translators project introduced me to a whole
+new world of programming both logic and functional. In the first
+project meeting we envisioned a programming language to simulate agent
+movement in a grid based environment. The most obvious choice was
+having a logic level programming language. The learning course started
+with choosing a convinient and accurate grammar. After that working on
+the parser and scanner made me realize the power of type checking in
+ocaml. I also learnt how to logically reason and resolve the shift
+reduce and reduce reduce conflicts. 
+
+Implementation of the interpreter introduced me the power of recursive
+programming. Writing tests help me find bugs in the language,also it
+taught me that the testing is an ongoing process. Working in a team
+and meeting self made deadlines was also part of my learning. 
+
+After the working on this project I found it much easier to understand
+the syntax and program in "Murphy" a formal verification
+language. Along with programming languages it also exposed me to shell
+scripts, Makefiles, Svn repositories.
+
 
 \subsection{From John}
 
@@ -935,6 +959,25 @@ origin. To conclude, this project has taught me the tricks of the
 trade to ``program'' and given me the tool, ``OCaml''.
 
 \subsection{From Cheng}
+From this project, i have learned not only how to contruct an
+interpreter step by step but also how to collaborate with my
+teammates.
+
+Basically, there are three most important things i have learned from
+this project. First, I have acquired a deep understanding of basic
+concepts covered in the class. This is definitely helpful when i am
+trying to study a new programming language. Specifically, I can
+quickly learn how to program using this language and solve the
+compiling errors as soon as i know about the general features of its
+compilor (such as naming and scoping rules). Moreover, the success of
+the project is largely determined by its design. With a good design,
+coding part will be more easily. However, with a bad design, it will
+be a painful experience. So it is wise to spend most time on the
+software design. Finally, teamwork plays a key role in software
+development. In this project, I have improved my skills of
+communication. With better communication, the whole team can work more
+efficiently.
+
 
 \singlespace
 

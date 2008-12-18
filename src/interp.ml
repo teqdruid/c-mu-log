@@ -7,11 +7,16 @@
  *  You'll quickly be able to tell that this whole method is _begging_ for co-routines.
  *    Lazy evaluation could be beneficial here as well.
  *
+ *  This whole guy is written for composability.  Each function takes a database and
+ *  variable constraints and returns type "next".  Each composite function (like evals,
+ *  and blocks) run their sub functions, look at the results, mutate then appropriately
+ *  and return the results as "next"s.  All of this happens lazily.
  * 
  *  John Demme
  * 
  *)
 
+(* Each variable can be constrained in any of these ways *)
 type var_cnst = 
     Any
   | FalseSol
@@ -23,6 +28,7 @@ type var_cnst =
   | CRange     of int*int
   | CEqlAgent  of database
 
+(* Constraints is a list of variables *)
 and cnst = var_cnst list
 
 and signature = {
@@ -30,10 +36,12 @@ and signature = {
   params : cnst
 }
 
+(* This guy is how we do our lazy evaluation *)
 and next = 
     NoSolution
   | Solution of cnst * (unit -> next)
 
+(* A list of these guys makes up our database *)
 and rule_fact = 
     Fact of signature
   | Rule of signature * (database -> database -> cnst -> next)
@@ -58,6 +66,7 @@ let string_of_eval name vars =
   name ^ "(" ^ String.concat "," (List.map string_of_cnst vars) ^")\n"
 ;;
 
+(* AND two variable constraints together *)
 let cAnd a b =
   let rec and_int a b t = 
     match (a, b) with
@@ -129,6 +138,11 @@ let cMinus b s =
     List.map range_to_int (cmi (int_to_range b) (int_to_range s))
 ;;
 
+(* Why isn't this in the list module?
+ * 
+ * This guy iterates through all the elements of a list like map,
+ *  but the function emits a list which are all appended together.
+ *)
 let list_acc mapper list = 
   let rec acc list ret = 
     match list with
@@ -146,11 +160,16 @@ let rec list_first n list =
     | _ -> []
 ;;
 
+(* Return a list with 'number' items duplicated *)
 let rec list_fill item number = 
   if number <= 0
   then []
   else item :: (list_fill item (number - 1));;
 
+
+(* Pad the shorter or the two lists to make them the
+ * same size.  Pad with 'Anys'
+ *)
 let cnst_extend a b = 
   let delta = (List.length a) - (List.length b) in
     if delta > 0
@@ -160,6 +179,7 @@ let cnst_extend a b =
     else (a,b)
 ;;
 
+(* Pad a constraint list to ensure it is length l *)
 let cnst_extend_to a l =
   let delta = l - (List.length a) in
     if delta > 0
@@ -167,11 +187,13 @@ let cnst_extend_to a l =
     else a
 ;;
 
+(* Extend aC and bC to be the same length and AND them *)
 let cnstAndAll aC bC =
   let (aC, bC) = cnst_extend aC bC in
     List.map2 cAnd aC bC
 ;;
 
+(* Does signature match the term 'name' with inputs 'vars'? *)
 let match_signature signature name vars =
   let match_params param vars =
     let anded = cnstAndAll param vars in
@@ -182,6 +204,7 @@ let match_signature signature name vars =
       (match_params signature.params vars)
 ;;
 
+(*  *)
 let remove_fact_all db pred cnsts = 
   (* print_string ("Removing: "^ (string_of_eval pred cnsts) ^ "\n"); *)
   List.filter
@@ -193,6 +216,7 @@ let remove_fact_all db pred cnsts =
     db
 ;;
 
+(* Remove a single matching fact from a database, returing the new DB *)
 let rec remove_fact1 db pred cnsts = 
   (* print_string ("Removing: "^ (string_of_eval pred cnsts) ^ "\n"); *)
   match db with 
@@ -201,6 +225,7 @@ let rec remove_fact1 db pred cnsts =
     | hd :: tl -> hd :: (remove_fact1 tl pred cnsts)
 ;;
 
+(* Return a new list of constraints specified by a parameter list *)
 let cnst_of_params params env =
   let param_to_cnst = function
       Tst.Lit(i) -> CEqlInt    (i)
@@ -215,6 +240,7 @@ let cnst_of_params params env =
     List.map param_to_cnst params
 ;;
 
+(* Convert a param list to a list of constraints *)
 let sig_to_cnst signature =
   let param_to_cnst = function
       Tst.Lit(i) -> CEqlInt    (i)
@@ -227,7 +253,8 @@ let sig_to_cnst signature =
     List.map param_to_cnst signature
 ;;
 
-(* TODO: Need constraints list mapping *)
+
+(* Evaluate a query *)
 let rec run_eval db addDB name vars =
   let rec run_gen tail nextGen =
     let sols = (nextGen ()) in
@@ -254,6 +281,9 @@ let rec run_eval db addDB name vars =
     eval_loop (!addDB @ !db)
 ;;
 
+(* Replace the i'th element with e in list
+ *  Horribly wasteful, but oh well
+ *)
 let rec list_replace i e list =
   match list with
       [] -> []
@@ -263,9 +293,30 @@ let rec list_replace i e list =
 	else hd :: (list_replace (i - 1) e tl)
 ;;
 
+
+(* The function that should be run when I type [i..j] *)
 let rec range i j = if i >= j then [] else i :: (range (i+1) j)
 
+
 let parseDB (prog) = 
+  (* 
+   *   All of the parse functions take the information regarding
+   *   their statement and return a function of the type
+   *   database -> database -> cnsts -> next
+   * 
+   *   Which correspond to
+   *   primary db -> add-on db -> the scope's constraints
+   * 
+   *   And they return a lazy solution iterator.
+   * 
+   *   These same functions which are returned by the query method
+   *    are used internally to compose everything.  Makes it
+   *    (relatively) easy to implement new functionality since nobody
+   *    needs to know anything about their parents or children except
+   *    that they conform to this interface.
+   *)
+
+
 
   (* Our only compiler directive is print, for now.
      learn/forget have a special syntax *)
@@ -446,6 +497,7 @@ let parseDB (prog) =
 		     "Warning: attempted dot ('.') on a non-agent: %s\n"
 		     (string_of_cnst a);
 		   NoSolution))
+
   and parseNDot2 v pred params = 
     let eval = parseNotEval pred params in
       (fun db addDB cnst -> 
@@ -465,6 +517,7 @@ let parseDB (prog) =
       if List.for_all (fun a -> a != FalseSol) sol
       then Solution(sol, fun () -> NoSolution)
       else NoSolution
+
   and parseCompOp op v e2 = 
     let compOp i  =
       match op with
@@ -478,10 +531,13 @@ let parseDB (prog) =
       match e2 with
 	  Tst.ELit(i) -> 
 	    doAnd ((list_fill Any v) @ [(compOp i)])
+
   and parseStrComp v s = 
     doAnd ((list_fill Any v) @ [CEqlStr(s)])    
+
   and parseSymComp v s = 
     doAnd ((list_fill Any v) @ [CEqlSymbol(s)])
+
   and parseLearnForget name statements =
     let remove_facts db addDB cnsts =
       let remove_fact (name,params) =
@@ -509,6 +565,7 @@ let parseDB (prog) =
       else if (nm "forget1") == 0 
       then (fun db addDB cnsts -> remove_fact1 db addDB cnsts; NoSolution)
       else failwith ("Invalid directive: " ^ name)
+
   and parseDot1 v dname statements = 
     let study = parseLearnForget dname statements in
       (fun db addDB cnst -> 
@@ -519,6 +576,7 @@ let parseDB (prog) =
 		     "Warning: attempted @ dot ('.') on a non-agent: %s\n"
 		     (string_of_cnst a);
 		   NoSolution))
+
   and parseStatement statement = 
     match statement with 
 	Tst.Block (redOp, statements)
@@ -551,6 +609,7 @@ let parseDB (prog) =
       | Tst.NDot2(v, pred, params) ->
 	  parseNDot2 v pred params
   in
+
   let parseRule stmt slots actions = 
     fun db addDB inCnsts ->      
       let rec runPer sols nxt = 
@@ -570,6 +629,7 @@ let parseDB (prog) =
 	(* print_string ("Num slots: " ^ (string_of_int slots) ^ "\n"); *)
 	runPer [] (stmt db addDB (cnst_extend_to inCnsts slots))
   in
+
   let parseRF = function
       Tst.Rule (name, parms, numVars, statement, nseStmt) -> 
 	Rule ({ name = name; params = (sig_to_cnst parms)}, 
@@ -578,14 +638,23 @@ let parseDB (prog) =
     | Tst.Fact (name, parms)            -> 
 	Fact ({ name = name; params = (sig_to_cnst parms)}) 
   in
+
   let tProg = Trans.translate(prog) in
     ref (List.map parseRF tProg)
 ;;
 
+(* Primary entry point into the database.  Specify the 
+ * term to query and the number of variables to pass in.
+ * 
+ * db is the database to query, and addDB is the "add on"
+ * database so the caller can pass information into the program
+ *)
 let query db addDB pred numVars =
   run_eval db addDB pred (list_fill Any numVars)
 ;;
 
+
+(* Print all the rules and facts in a DB- for debugging *)
 let rec dump_db db = 
   let print_sig s =
     Printf.printf "%s(%s)" 
