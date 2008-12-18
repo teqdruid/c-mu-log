@@ -578,7 +578,7 @@ both terminated by semicolons.
 
 \begin{verbatim}
 Examples:
-  1 < $X <= $Y < 10;  // A comparison
+  $X < 10;  // A comparison
   range($X, $Y, 7);   // An eval
   !range($X, $Y, 7);   // This must not evaluate to true
   {OR: $X > 10; $X < 0; }  //A sub-block with two binary comparisons
@@ -678,8 +678,6 @@ Grammar:
 \end{verbatim}
 
 \section{Project Plan}
-
-We're cowboys--we don't have a friggin' plan!
 
 \subsection{Responsibilities}
 
@@ -810,16 +808,24 @@ different behaviors.
 
 \section{Test Plan}
 
-    * Show two or three representative source language programs along with the target language program generated for each
-    * Explain why and how these test cases were chosen
-
 \subsection{Testing Script}
-The python script shown in listing \ref{test} is used to run our
+The python script shown in listing 1 is used to run our
 tests.  Each test can be one of three different types: a parsing test,
 an interpreter test, or a full simulation test.
 
-\lstset{caption=Testing Script,label=test}
+\lstset{caption=Testing Script,label=testpy}
 \lstinputlisting{../src/test.py}
+
+\subsection{Test Case Rationale}
+Most of our test cases are written to test a specific feature.  For
+instance, ``andTest.ul'' is designed to test AND blocks.  To whatever
+extent possible, these tests avoid testing other features.  This makes
+it easier to determine what feature has been broken when tests start
+failing.  Other tests are designed to fail to make sure that various
+parts of the system fail properly.  Still other tests are composite
+tests and are designed to test the system as a whole- they test
+multiple features at once to ensure that there are not bizarre
+interactions between various parts of the system.
 
 \subsection{Testing Results}
 As of the writing of this report, the testing results are shown
@@ -851,6 +857,84 @@ Running tests/sprint1.ul                   ...OK
 
 
 \section{Lessons Learned}
+
+\subsection{From Devesh}
+
+\subsection{From John}
+
+A few rules to live by:
+\begin{description}
+  \item[Tools] Don't use the wrong tools for the right job or the
+    right tools for the wrong job.  Even parity is required!  The
+    interpreter is written to lazily evaluate queries both to reduce
+    memory usage and avoid infinite loops in cases of infinite
+    solutions.  This lazy evaluation stragety would have been much
+    easier to implement either with co-routines or lazy evaluation (a
+    la Haskell.)  Since OCaml offers neither of these features, I
+    implemented lazy evaluation by hand, and it made everything harder
+    by an order of magnitude.  Since I didn't have the proper tools
+    available, I shouldn't have written lazy evaluation.  I should
+    have created a logic solver would could only operate on a smaller
+    class of programs, and would return all the results at once.
+
+  \item[Testing] Everyong tests while they write code.  You have to.
+    Frequently, you write tests in a temporary file and discard when
+    the feature is ``working.''  Don't do this.  It's almost always
+    worth the extra time to set up a test bed and put your tests in
+    it.  Then keep them.  Run them often.  Passing tests gives you a
+    warm, fuzzy feeling which grows with the number of tests.  So,
+    keep all your ``temporary'' tests and you'll not only feel better
+    about yourself, but you'll be ensuring long-term quality.
+
+  \item[Refactoring] At first, you don't know the features of the
+    library and language.  You'll write an AST with unnecessary boxing
+    and unboxing.  You'll re-write List.filter, and use lambdas when
+    currying would have done the job.  Realizing it later on is the
+    mark of a good programmer.  Refactoring this code is the mark of a
+    diligent one.
+
+  \item[BYOT] Bring your own tools!  Tools are what separate the chaff
+    from the wheat.  If you need something done and a tool can do the
+    job, write the tool.  Scripting languages are great for this, so
+    one of the best time savers is intimate knowledge of a scripting
+    language.  Any language will do, but you can't be afraid of using
+    it.  Python is my pocket knife of choice, and as far as I'm
+    concerned, there's no such thing as abuse!
+
+  \item[Recycling] Does the code you're writing right now look at lot
+    like some of the code you wrote yesterday?  Don't write it again,
+    refactor the old code into a more generic function.  I won't claim
+    to be an angel, but I'm sure that ``copy and paste'' are tools of
+    the devil.
+\end{description}
+
+\subsection{From Nishant}
+
+Programming Languages and Translators, is my first ever core CS
+course. Being an EE student it was difficult but seemed interesting
+enough a course to be taken. The motivation behind taking this course
+was to learn about programming languages and the working of a
+translator and the various components a language
+interpreter/translator/compiler is made of. Another reason was to get
+involved in a programming project to get a feel of programming and
+think as a system programmer, designing stuff for the end user.
+
+After taking the class and brain storming with the group members, the
+thought was to create this language and looked unsurmountable to
+me. As a niche programmer I learnt a few valuable lessons in regards
+of thinking as a system programmer. This class and the project has
+introduced me to many different types of langauges, like Prolog
+(logical) and obviously OCaml(functional). Learning how to program in
+OCaml took some doing. Handling the return types and recursion was not
+easy. But after a full course and the project it is possible to write
+in OCaml.  Adapting to a new language, was a very useful thing learnt
+as well. While using a system modelling language called Promela for
+another class, I found it extremely easy to adapt to it. The other
+most important thing I learnt was errors, their types and their
+origin. To conclude, this project has taught me the tricks of the
+trade to ``program'' and given me the tool, ``OCaml''.
+
+\subsection{From Cheng}
 
 \singlespace
 
