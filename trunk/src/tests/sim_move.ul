@@ -1,4 +1,5 @@
 /* checking the move with the simulator*/
+size(15,15);
 wall(3,4);
 wall(5,4);
 wall(3,8);
@@ -6,5 +7,5 @@ wall(12,4);
 wall(3,9);
 wall(3,12);
 wall(13,13);
-move("up");
-move("down");
+move("UP");
+move("DOWN");
