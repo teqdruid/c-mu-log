@@ -1,0 +1,6 @@
+// test that is accepted by the parser but fails in the trans.ml
+// variable comparison is not supported.
+
+variable_comp($x,$y){
+		     $X<$Y+1;
+		    }	

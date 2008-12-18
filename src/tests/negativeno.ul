@@ -1,0 +1,10 @@
+// tests to test whether negative no.s are accepted
+wall(-4,5);
+wall(?,-2);
+wall(-1,-1);
+size(-10,-10);
+
+main(){ 
+@print("wall(",$x,",",$y,")");
+wall($x,$y);         	 
+}

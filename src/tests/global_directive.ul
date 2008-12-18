@@ -1,0 +1,8 @@
+//global directives
+// no support is currently supplied for global directives.
+
+@global_directive("global directive not supported");
+
+main(){AND:
+	@print("this is not a global directive and is supported");
+      }		

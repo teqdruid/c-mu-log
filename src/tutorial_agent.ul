@@ -1,0 +1,8 @@
+//Agent Program:
+  move($dir) {
+    @print($e, " says move ", $dir);
+    $e.@forget1( imove($dir); );
+    env($e);
+    $e.imove($dir);
+  }
+
