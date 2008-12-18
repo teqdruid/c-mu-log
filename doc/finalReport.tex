@@ -80,7 +80,7 @@ program is run by asking a question, which the interpreter attempts
 to answer using inferences based on the fact and rule set. C$\mu$LOG is
 designed for simulation, so typically a simulator will ask a given
 agent program what it’s next action will be. The agent program then
-uses C$\mu$LOG’s entity interaction features to gather information about
+uses C$\mu$LOG's entity interaction features to gather information about
 it’s environment and decide what to do. Each agent program can
 communicate with other programs to find out more information about
 other agents or its own status in the environment. The simulator stores
@@ -173,12 +173,12 @@ anonymous variable which is represented simply by a question mark (?).
 
 \begin{verbatim}
 Example variable names:
-   \$foo  \$bar\_  \$f1o2o3
+   $foo  $bar_  $f1o2o3
 \end{verbatim}
 
 \begin{verbatim}
 The following are not valid variables:
-  foo  \$\_foo  \$1bar
+  foo  $_foo  $1bar
 \end{verbatim}
 
 \subsection{Statements}
@@ -191,14 +191,14 @@ Comparison statements are used to compare variables against constants:
 
 \begin{verbatim}
 Example comparisons:
-  \$a>1+3-4; //means that variable 'a' is always greater than 0
-  \$boo <= 5; // means that variable 'boo' is less than or equal to 5
+  $a>1+3-4; //means that variable 'a' is always greater than 0
+  $boo <= 5; // means that variable 'boo' is less than or equal to 5
 \end{verbatim}
 
 Evaluation or eval statements are used to query the program for solutions:
 
 \begin{verbatim}
-  boofar(\$s,\$d,7); //from all the possible matches in the program's
+  boofar($s,$d,7); //from all the possible matches in the program's
      //graph it returns various possible values for the pair s and d,
      //and constrains those values in their scope appropriately, as 
      //defined by the block in which the statement is contained
@@ -284,7 +284,7 @@ Example:
 \subsection{Simulator}
 
 Now for the user to be able to run a simulation or play a game in
-C$\mu$, they will have to use a simulator which interacts with the
+C$\mu$LOG, they will have to use a simulator which interacts with the
 logic engine of the langauge to produce required results. For
 demonstration we have done so already. This simulator defines a class
 of games or simulations described as follows:
@@ -671,12 +671,12 @@ revealing an entirely fake namespace to the other agent.  Such access rules are
 beyond the scope of C$\mu$LOG initially, however.
 \begin{verbatim}
 Example:
-  $agent.@learn( wall(4,5); );  //Tell agent2 that there is a wall at (4,5)
-  env.view($X, $Y, $obj); //Query the environment, find out what is at ($X, $Y)
+  $agent2.@learn( wall(4,5); );  //Tell agent2 that there is a wall at (4,5)
+  env($e); $e.view($X, $Y, $obj); //Query the environment, find out what is at ($X, $Y)
 
 Grammar:
   DotOp -> Directive | Statement
-  Dot -> Variable . DotOp | Identifier . DotOp
+  Dot -> Variable . DotOp
 \end{verbatim}
 
 \section{Project Plan}
@@ -691,7 +691,7 @@ and translator were completed by John Demme. Nishant Shah and Cheng
 Cheng developed the simulator together. Testing each phase and testing
 the whole system was not assigned to any particular person as it
 requires as much man power as available. Testing was done by every
-group member.
+group member.  Drafting of this report was done by Nishant Shah.
 
 \subsection{Timeline}
 
@@ -730,7 +730,7 @@ development and also testing the features at the same time.
 The project will be developed on Ubuntu using Objective Caml
 3.1.0. The scanner was developed using Ocamllex v3.1.0. The parser was
 developed using Ocamlyacc v3.1.0. We will use Python to run our tests
-and compare it with the expected output. Version control,managing
+and compare it with the expected output. Version control, managing
 multiple revisions of files, not only program source files, but any
 type of files is done using Subversion. We are using Google Code for
 issue tracking and Subversion hostin, plus Google groups("pltsim") for
@@ -874,7 +874,7 @@ ocaml. I also learnt how to logically reason and resolve the shift
 reduce and reduce reduce conflicts. 
 
 Implementation of the interpreter introduced me the power of recursive
-programming. Writing tests help me find bugs in the language,also it
+programming. Writing tests help me find bugs in the language, also it
 taught me that the testing is an ongoing process. Working in a team
 and meeting self made deadlines was also part of my learning. 
 
@@ -882,6 +882,52 @@ After the working on this project I found it much easier to understand
 the syntax and program in "Murphy" a formal verification
 language. Along with programming languages it also exposed me to shell
 scripts, Makefiles, Svn repositories.
+
+\subsection{From Nishant}
+
+Programming Languages and Translators, is my first ever core CS
+course. Being an EE student it was difficult but seemed interesting
+enough a course to be taken. The motivation behind taking this course
+was to learn about programming languages and the working of a
+translator and the various components a language
+interpreter/translator/compiler is made of. Another reason was to get
+involved in a programming project to get a feel of programming and
+think as a system programmer, designing stuff for the end user.
+
+After taking the class and brain storming with the group members, the
+thought was to create this language and looked unsurmountable to
+me. As a niche programmer I learnt a few valuable lessons in regards
+of thinking as a system programmer. This class and the project has
+introduced me to many different types of langauges, like Prolog
+(logical) and obviously OCaml(functional). Learning how to program in
+OCaml took some doing. Handling the return types and recursion was not
+easy. But after a full course and the project it is possible to write
+in OCaml.  Adapting to a new language, was a very useful thing learnt
+as well. While using a system modelling language called Promela for
+another class, I found it extremely easy to adapt to it. The other
+most important thing I learnt was errors, their types and their
+origin. To conclude, this project has taught me the tricks of the
+trade to ``program'' and given me the tool, ``OCaml''.
+
+\subsection{From Cheng}
+From this project, I have learned not only how to contruct an
+interpreter step by step but also how to collaborate with my
+teammates.
+
+Basically, there are three most important things i have learned from
+this project. First, I have acquired a deep understanding of basic
+concepts covered in the class. This is definitely helpful when I am
+trying to study a new programming language. Specifically, I can
+quickly learn how to program using this language and solve the
+compiling errors as soon as I know about the general features of its
+compiler (such as naming and scoping rules). Moreover, the success of
+the project is largely determined by its design. With a good design,
+coding part will be more easily. However, with a bad design, it will
+be a painful experience. So it is wise to spend most time on the
+software design. Finally, teamwork plays a key role in software
+development. In this project, I have improved my skills of
+communication. With better communication, the whole team can work more
+efficiently.
 
 
 \subsection{From John}
@@ -931,52 +977,6 @@ A few rules to live by:
     to be an angel, but I'm sure that ``copy and paste'' are tools of
     the devil.
 \end{description}
-
-\subsection{From Nishant}
-
-Programming Languages and Translators, is my first ever core CS
-course. Being an EE student it was difficult but seemed interesting
-enough a course to be taken. The motivation behind taking this course
-was to learn about programming languages and the working of a
-translator and the various components a language
-interpreter/translator/compiler is made of. Another reason was to get
-involved in a programming project to get a feel of programming and
-think as a system programmer, designing stuff for the end user.
-
-After taking the class and brain storming with the group members, the
-thought was to create this language and looked unsurmountable to
-me. As a niche programmer I learnt a few valuable lessons in regards
-of thinking as a system programmer. This class and the project has
-introduced me to many different types of langauges, like Prolog
-(logical) and obviously OCaml(functional). Learning how to program in
-OCaml took some doing. Handling the return types and recursion was not
-easy. But after a full course and the project it is possible to write
-in OCaml.  Adapting to a new language, was a very useful thing learnt
-as well. While using a system modelling language called Promela for
-another class, I found it extremely easy to adapt to it. The other
-most important thing I learnt was errors, their types and their
-origin. To conclude, this project has taught me the tricks of the
-trade to ``program'' and given me the tool, ``OCaml''.
-
-\subsection{From Cheng}
-From this project, i have learned not only how to contruct an
-interpreter step by step but also how to collaborate with my
-teammates.
-
-Basically, there are three most important things i have learned from
-this project. First, I have acquired a deep understanding of basic
-concepts covered in the class. This is definitely helpful when i am
-trying to study a new programming language. Specifically, I can
-quickly learn how to program using this language and solve the
-compiling errors as soon as i know about the general features of its
-compilor (such as naming and scoping rules). Moreover, the success of
-the project is largely determined by its design. With a good design,
-coding part will be more easily. However, with a bad design, it will
-be a painful experience. So it is wise to spend most time on the
-software design. Finally, teamwork plays a key role in software
-development. In this project, I have improved my skills of
-communication. With better communication, the whole team can work more
-efficiently.
 
 
 \singlespace
